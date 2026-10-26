@@ -130,6 +130,22 @@ func TestEnsureSourceUsesTildeAndIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestSnippetContent(t *testing.T) {
+	s := snippetContent("/bin/amux")
+	if !strings.Contains(s, "'/bin/amux pick'") {
+		t.Fatalf("bind is malformed:\n%s", s)
+	}
+	if strings.Contains(s, "''") {
+		t.Fatalf("double quoting in snippet:\n%s", s)
+	}
+	if !strings.Contains(s, `focus #{pane_id}`) {
+		t.Fatal("missing pane focus hook")
+	}
+	if !strings.Contains(s, `focus #{session_name}:#{window_index}`) {
+		t.Fatal("missing window focus hook")
+	}
+}
+
 func TestPluginIsNotClobbered(t *testing.T) {
 	home := t.TempDir()
 	path := filepath.Join(home, ".config", "opencode", "plugins", "amux.js")

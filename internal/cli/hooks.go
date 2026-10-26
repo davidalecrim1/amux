@@ -52,6 +52,11 @@ func (a *App) hookCmd(args []string) int {
 		_ = a.Store.Delete(pid, paneID)
 		return 0
 	}
+	// A finish in the pane the user is staring at is already seen.
+	if rec.State == state.DoneUnseen && tmux.PaneFocused(paneID) {
+		rec.State = state.Idle
+		rec.UpdatedAt = now
+	}
 	if res.Changed {
 		_ = a.Store.Save(*rec)
 	}

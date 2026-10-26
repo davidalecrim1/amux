@@ -195,7 +195,8 @@ There is no clock and no daemon, so the picker reconciles at open time:
 DONE_UNSEEN → IDLE happens when you focus the pane. tmux hooks (`after-select-pane`,
 `after-select-window`, `client-session-changed`) call `amux focus <pane-id or
 session:window>`, which clears the marker and stamps `last_focus_at`. `Ctrl-A`
-acknowledges without visiting.
+acknowledges without visiting. A `Stop` inside the pane you are currently looking at is
+recorded as IDLE immediately, so watching an agent finish never leaves a stale `✓`.
 
 ### 5.5 Age
 

@@ -141,6 +141,21 @@ func KillSession(target string) error {
 	return err
 }
 
+// PaneFocused reports whether the pane is the active pane of an attached
+// client, i.e. the user is looking at it right now.
+func PaneFocused(paneID string) bool {
+	out, err := run("display-message", "-p", "-t", paneID,
+		"#{pane_active}"+sep+"#{window_active}"+sep+"#{session_attached}")
+	if err != nil {
+		return false
+	}
+	parts := strings.Split(strings.TrimSpace(out), sep)
+	if len(parts) != 3 {
+		return false
+	}
+	return truthy(parts[0]) && truthy(parts[1]) && parts[2] != "" && parts[2] != "0"
+}
+
 func Capture(paneID string, lines int) (string, error) {
 	if lines <= 0 {
 		lines = 60
