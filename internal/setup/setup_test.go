@@ -146,6 +146,20 @@ func TestSnippetContent(t *testing.T) {
 	}
 }
 
+func TestPluginTemplateTargetsV2(t *testing.T) {
+	if !strings.Contains(pluginTemplate, "Plugin.define") {
+		t.Fatal("plugin must use the OpenCode v2 Plugin.define API")
+	}
+	if !strings.Contains(pluginTemplate, `ctx.event.subscribe`) {
+		t.Fatal("plugin must subscribe to the v2 event stream")
+	}
+	for _, ev := range []string{"session.idle", "permission.asked", "permission.replied", "session.error"} {
+		if !strings.Contains(pluginTemplate, ev) {
+			t.Fatalf("plugin missing %s", ev)
+		}
+	}
+}
+
 func TestPluginIsNotClobbered(t *testing.T) {
 	home := t.TempDir()
 	path := filepath.Join(home, ".config", "opencode", "plugins", "amux.js")

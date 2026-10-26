@@ -297,50 +297,70 @@ func jsonString(s string) string {
 	return string(b)
 }
 
-const pluginTemplate = `// Reports OpenCode session state to amux.
+const pluginTemplate = `// Reports OpenCode session state to amux (OpenCode v2 plugin API).
+import { Plugin } from "@opencode/plugin"
+import { spawn } from "node:child_process"
+
 const BIN = __AMUX_BIN__
 const pane = process.env.TMUX_PANE
+let sessionID = undefined
 
 function report(payload) {
   if (!pane) return
   try {
-    const proc = Bun.spawn([BIN, "report"], {
-      stdin: new Blob([JSON.stringify({ pane_id: pane, agent: "opencode", ...payload })]),
-      stdout: "ignore",
-      stderr: "ignore",
-    })
+    const proc = spawn(BIN, ["report"], { detached: true, stdio: ["pipe", "ignore", "ignore"] })
+    proc.on("error", () => {})
+    proc.stdin.on("error", () => {})
+    proc.stdin.end(JSON.stringify({ pane_id: pane, agent: "opencode", ...payload }))
     proc.unref()
   } catch {}
 }
 
-export const AmuxPlugin = async () => ({
-  event: async ({ event }) => {
-    const props = event.properties || {}
-    switch (event.type) {
-      case "session.status":
-        if (props.status?.type === "busy") {
-          report({ state: "running", session_id: props.sessionID })
+function mine(event) {
+  const id = event?.properties?.sessionID
+  return sessionID === undefined || id === undefined || id === sessionID
+}
+
+export default Plugin.define({
+  id: "amux",
+  async setup(ctx) {
+    const controller = new AbortController()
+
+    void (async () => {
+      try {
+        for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
+          if (!mine(event)) continue
+          switch (event.type) {
+            case "session.idle":
+              report({ state: "done_unseen" })
+              break
+            case "permission.asked":
+              report({ state: "needs_input", detail: "permission" })
+              break
+            case "permission.replied":
+              report({ state: "running" })
+              break
+            case "session.error":
+              report({ state: "needs_input", detail: "error" })
+              break
+            case "session.deleted":
+              report({ state: "gone" })
+              break
+          }
         }
-        break
-      case "session.idle":
-        report({ state: "done_unseen", session_id: props.sessionID })
-        break
-      case "permission.asked":
-        report({ state: "needs_input", detail: "permission", session_id: props.sessionID })
-        break
-      case "permission.replied":
-        report({ state: "running", session_id: props.sessionID })
-        break
-      case "session.error":
-        report({ state: "needs_input", detail: "error", session_id: props.sessionID })
-        break
-      case "session.deleted":
-        report({ state: "gone" })
-        break
-    }
-  },
-  "tool.execute.before": async (input) => {
-    report({ state: "running", detail: input?.tool })
+      } catch {}
+    })()
+
+    await ctx.session.hook("prompt", (event) => {
+      sessionID = event.sessionID
+      report({ state: "running" })
+    })
+
+    await ctx.tool.hook("execute.before", (event) => {
+      report({ state: "running", detail: event.tool })
+    })
+
+    return () => controller.abort()
   },
 })
 `

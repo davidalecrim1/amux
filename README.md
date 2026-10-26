@@ -22,6 +22,7 @@ No daemon, no sidebar, no status bar. Hooks write a tiny state file, the popup r
 
 - tmux 3.4 or newer (`display-popup`, `after-select-pane`)
 - fzf 0.50 or newer
+- OpenCode v2 for the OpenCode plugin (v1 plugins are a different API)
 - Go 1.24 or newer to build
 
 ## Install

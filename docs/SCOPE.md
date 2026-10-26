@@ -161,16 +161,18 @@ Hooks are observational and must never block the agent:
 ### 5.3 OpenCode
 
 A generated plugin at `~/.config/opencode/plugins/amux.js`, installed by `amux setup`,
-subscribing to the OpenCode event bus and piping normalized JSON into `amux report`.
+subscribing to the OpenCode v2 public event stream and piping normalized JSON into
+`amux report`. v1 plugins do not run in v2, so this targets `Plugin.define` and
+`ctx.event.subscribe` exclusively.
 
 | Event | Result |
 | --- | --- |
-| `session.status` with `status.type == "busy"` | RUNNING |
+| `prompt` session hook | RUNNING |
+| `tool.execute.before` hook | RUNNING, heartbeat |
 | `permission.asked` | NEEDS_INPUT |
 | `permission.replied` | RUNNING |
-| `tool.execute.before`, `tool.execute.after` | RUNNING, heartbeat |
 | `session.idle` | DONE_UNSEEN |
-| `session.error` | NEEDS_INPUT, detail = error name |
+| `session.error` | NEEDS_INPUT, detail = error |
 | `session.deleted` | delete the record |
 
 Prompt text is not available on these events, so the OpenCode row shows the directory
