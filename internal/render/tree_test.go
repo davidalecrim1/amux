@@ -1,0 +1,110 @@
+package render
+
+import (
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/davidalecrim1/amux/internal/state"
+	"github.com/davidalecrim1/amux/internal/tmux"
+)
+
+func pane(session, win, paneIdx, id, cmd string, active, winActive bool) tmux.Pane {
+	return tmux.Pane{
+		SessionName:  session,
+		SessionPath:  "/Users/me/Code/" + strings.ToLower(session),
+		WindowIndex:  win,
+		WindowName:   "w" + win,
+		PaneID:       id,
+		PaneIndex:    paneIdx,
+		PaneCommand:  cmd,
+		PanePath:     "/Users/me/Code/" + strings.ToLower(session) + "/sub",
+		PaneActive:   active,
+		WindowActive: winActive,
+	}
+}
+
+func TestTreeOrderingAndGlyphs(t *testing.T) {
+	now := time.Date(2026, 10, 26, 16, 0, 0, 0, time.UTC)
+	panes := []tmux.Pane{
+		pane("PROJ-123", "0", "0", "%1", "node", true, true),
+		pane("PROJ-123", "0", "1", "%2", "node", false, true),
+		pane("PROJ-456", "0", "0", "%3", "zsh", true, true),
+	}
+	records := map[string]state.Record{
+		"%1": {PaneID: "%1", Agent: "claude", State: state.Running, Prompt: "add retry", UpdatedAt: now.Add(-10 * time.Second), LastEvent: now.Add(-10 * time.Second)},
+		"%2": {PaneID: "%2", Agent: "claude", State: state.NeedsInput, Prompt: "fix timeout", UpdatedAt: now.Add(-2 * time.Minute), LastEvent: now.Add(-2 * time.Minute)},
+	}
+
+	rows := Rows(panes, records, Options{Now: now, Branches: map[string]string{"%1": "feature/retry"}, ANSI: false})
+	if len(rows) != 7 {
+		t.Fatalf("got %d rows: %v", len(rows), rows)
+	}
+	if !strings.Contains(rows[0], "PROJ-123") || !strings.Contains(rows[0], "1! 1●") {
+		t.Fatalf("first row = %q", rows[0])
+	}
+	if !strings.HasSuffix(rows[0], "\ts:PROJ-123") {
+		t.Fatalf("missing session ref: %q", rows[0])
+	}
+
+	// Needs-input pane must sort before the running pane inside the window.
+	var order []string
+	for _, r := range rows {
+		if strings.HasSuffix(r, "\tp:%1") || strings.HasSuffix(r, "\tp:%2") {
+			order = append(order, r[strings.LastIndex(r, "%"):])
+		}
+	}
+	if len(order) != 2 || !strings.HasPrefix(order[0], "%2") {
+		t.Fatalf("pane order = %v", order)
+	}
+
+	// Session without agents sorts last and its pane carries no state glyph.
+	last := rows[len(rows)-1]
+	if !strings.Contains(last, "sleep") && !strings.Contains(last, "zsh") {
+		t.Fatalf("last row = %q", last)
+	}
+	if strings.Contains(last, "●") || strings.Contains(last, "!") || strings.Contains(last, "✓") {
+		t.Fatalf("non-agent pane should have no glyph: %q", last)
+	}
+
+	var needsRow string
+	for _, r := range rows {
+		if strings.HasSuffix(r, "\tp:%2") {
+			needsRow = r
+		}
+	}
+	if !strings.Contains(needsRow, "2m") {
+		t.Fatalf("age missing: %q", needsRow)
+	}
+}
+
+func TestAgeFormats(t *testing.T) {
+	cases := map[time.Duration]string{
+		5 * time.Second:  "5s",
+		3 * time.Minute:  "3m",
+		2 * time.Hour:    "2h",
+		72 * time.Hour:   "3d",
+		-1 * time.Second: "0s",
+	}
+	for d, want := range cases {
+		if got := FormatAge(d); got != want {
+			t.Fatalf("FormatAge(%v) = %q, want %q", d, got, want)
+		}
+	}
+}
+
+func TestANSIOnlyWhenAsked(t *testing.T) {
+	now := time.Now()
+	panes := []tmux.Pane{pane("S", "0", "0", "%1", "node", true, true)}
+	records := map[string]state.Record{
+		"%1": {PaneID: "%1", Agent: "claude", State: state.Running, UpdatedAt: now, LastEvent: now},
+	}
+	plain := Rows(panes, records, Options{Now: now, ANSI: false})
+	if strings.Contains(plain[0], "\x1b[") {
+		t.Fatal("plain rows must not contain escape codes")
+	}
+	colored := Rows(panes, records, Options{Now: now, ANSI: true})
+	if !strings.Contains(colored[0], "\x1b[") {
+		t.Fatal("ansi rows should contain escape codes")
+	}
+}

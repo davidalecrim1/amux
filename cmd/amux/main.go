@@ -1,0 +1,11 @@
+package main
+
+import (
+	"os"
+
+	"github.com/davidalecrim1/amux/internal/cli"
+)
+
+func main() {
+	os.Exit(cli.New().Run(os.Args[1:]))
+}
