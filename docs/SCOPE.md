@@ -47,9 +47,10 @@ bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=terminal' '~
 ```
 
 `-s 'bg=terminal'` overrides the theme's solid `popup-style` for this popup only and makes
-tmux emit the terminal's default background, so Ghostty composites its own background
-(including opacity and blur) behind the popup. `prefix + w` is left untouched as the plain
-`choose-tree` fallback.
+tmux emit the terminal's default background (SGR 49), so whatever terminal is running
+composites its own background behind the popup. `bg=terminal` is a tmux 3.8 colour
+keyword, so setup omits the flag on older versions and falls back to `popup-style`.
+`prefix + w` is left untouched as the plain `choose-tree` fallback.
 
 ### 4.2 Layout
 

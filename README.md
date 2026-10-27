@@ -20,7 +20,8 @@ No daemon, no sidebar, no status bar. Hooks write a tiny state file, the popup r
 
 ## Requirements
 
-- tmux 3.4 or newer (`display-popup`, `after-select-pane`)
+- tmux 3.4 or newer (`display-popup`, `after-select-pane`). On tmux 3.8+ the popup
+  inherits the terminal background; older versions fall back to the configured popup style
 - fzf 0.50 or newer
 - OpenCode v2 for the OpenCode plugin (v1 plugins are a different API)
 - Go 1.24 or newer to build

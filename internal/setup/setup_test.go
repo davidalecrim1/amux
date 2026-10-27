@@ -131,12 +131,16 @@ func TestEnsureSourceUsesTildeAndIsIdempotent(t *testing.T) {
 }
 
 func TestSnippetContent(t *testing.T) {
-	s := snippetContent("/bin/amux")
+	s := snippetContent("/bin/amux", true)
 	if !strings.Contains(s, "'/bin/amux pick'") {
 		t.Fatalf("bind is malformed:\n%s", s)
 	}
 	if !strings.Contains(s, "-s 'bg=terminal'") {
 		t.Fatalf("popup should use the terminal background:\n%s", s)
+	}
+	old := snippetContent("/bin/amux", false)
+	if strings.Contains(old, "bg=terminal") {
+		t.Fatalf("old tmux should not get the terminal colour flag:\n%s", old)
 	}
 	if strings.Contains(s, "''") {
 		t.Fatalf("double quoting in snippet:\n%s", s)
