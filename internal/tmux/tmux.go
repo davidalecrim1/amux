@@ -160,7 +160,8 @@ func Capture(paneID string, lines int) (string, error) {
 	if lines <= 0 {
 		lines = 60
 	}
-	out, err := run("capture-pane", "-p", "-e", "-J", "-t", paneID, "-S", fmt.Sprintf("-%d", lines*3))
+	// No -S: capture the visible screen only, never scrollback.
+	out, err := run("capture-pane", "-p", "-e", "-J", "-t", paneID)
 	if err != nil {
 		return "", err
 	}

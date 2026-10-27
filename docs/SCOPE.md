@@ -141,8 +141,8 @@ In search mode fzf fuzzy matches the visible row text: session name, window name
 name, branch, path, prompt snippet, and state glyph. `!` finds everything blocked on you.
 The list is regenerated on open only; ctrl-x/ctrl-r/ctrl-a reload it in place.
 
-A right-side preview pane (half the popup, with a divider) shows the last 60 lines of the highlighted pane via
-`tmux capture-pane`. The preview strips background colours and non-SGR escapes, then cuts
+A right-side preview pane (half the popup, with a divider) shows the highlighted pane's
+visible screen via `tmux capture-pane`, never its scrollback. The preview strips background colours and non-SGR escapes, then cuts
 each line to the preview width, so a full-screen TUI cannot paint over the popup or wrap
 into a block of colours. Header line: `! needs input  ● running  ✓ done  ○ idle`.
 
