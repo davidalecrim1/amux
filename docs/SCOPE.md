@@ -43,12 +43,13 @@ Cut permanently unless re-scoped later:
 ### 4.1 Entry point
 
 ```
-bind W set-option -gu popup-style \; display-popup -E -w 90% -h 85% -T ' amux ' -b rounded '~/.local/bin/amux pick'
+bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=terminal' '~/.local/bin/amux pick'
 ```
 
-The binding clears `popup-style` first so the theme's solid popup colour does not apply and
-tmux falls back to its built-in default, which is the terminal background. `prefix + w` is
-left untouched as the plain `choose-tree` fallback.
+`-s 'bg=terminal'` overrides the theme's solid `popup-style` for this popup only and makes
+tmux emit the terminal's default background, so Ghostty composites its own background
+(including opacity and blur) behind the popup. `prefix + w` is left untouched as the plain
+`choose-tree` fallback.
 
 ### 4.2 Layout
 
@@ -286,7 +287,7 @@ before editing:
 1. Writes `~/.config/amux/tmux.conf`:
 
 ```tmux
-bind W set-option -gu popup-style \; display-popup -E -w 90% -h 85% -T ' amux ' -b rounded '~/.local/bin/amux pick'
+bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=terminal' '~/.local/bin/amux pick'
 set-hook -g after-select-pane   'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
 set-hook -g after-select-window 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
 set-hook -g client-session-changed 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
