@@ -43,19 +43,24 @@ Then reload tmux and restart Claude Code and OpenCode.
 
 ## Keys
 
-Inside the popup:
+The picker opens in navigation mode. Typing does nothing until you ask for search.
 
 | Key | Action |
 | --- | --- |
+| `j` / `k` | move down / up |
+| `g` / `G` | jump to first / last |
+| `/` | enter search mode |
+| Esc | leave search mode, or close when already navigating |
 | Enter | jump to the selected session, window, or pane |
 | Ctrl-X | kill the selected target (asks y/N) |
 | Ctrl-R | reset tracked state to idle |
 | Ctrl-A | acknowledge a done marker |
 | Ctrl-Y | copy `session:window.pane` |
 | Ctrl-O | copy the pane's working directory |
-| Esc | close |
 
-Type to filter. `!` finds everything blocked on you.
+In search mode every key types normally. The preview drops the pane's background colours,
+so a full-screen TUI cannot paint blocks over the popup, and each line is cut to the
+preview width instead of wrapping.
 
 ## Status
 

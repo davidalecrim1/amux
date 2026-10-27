@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/davidalecrim1/amux/internal/state"
@@ -66,6 +67,13 @@ func (a *App) preview(args []string) int {
 		fmt.Fprintf(a.Stdout, "cannot capture %s: %v\n", pane.PaneID, err)
 		return 0
 	}
+	width := 80
+	if v := os.Getenv("FZF_PREVIEW_COLUMNS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 1 {
+			width = n
+		}
+	}
+	out = tmux.SanitizePreview(out, width-1)
 	if strings.TrimSpace(out) == "" {
 		fmt.Fprintf(a.Stdout, "%s  %s\n\n(no output yet)", pane.SessionName, pane.PanePath)
 		return 0

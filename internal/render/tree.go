@@ -187,7 +187,7 @@ func renderSession(s sessionView, opt Options) string {
 	var b strings.Builder
 	b.WriteString(paint(opt, arrow+" ", dim))
 	b.WriteString(paint(opt, s.name, bold+nameColor))
-	if base := pathBase(s.path); base != "" {
+	if base := pathBase(s.path); base != "" && base != s.name {
 		b.WriteString("  ")
 		b.WriteString(paint(opt, base, dim))
 	}

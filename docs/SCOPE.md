@@ -106,24 +106,32 @@ every redraw.
 
 | Key | Action |
 | --- | --- |
+| `j` / `k` | move the cursor down / up while navigating |
+| `g` / `G` | jump to the first / last row |
+| `/` | enter search mode |
 | Enter | jump to the selected session, window, or pane and close the popup |
 | Ctrl-X | kill the selected pane, window, or session, after a y/N confirmation |
 | Ctrl-R | reset the selected target's tracked state to IDLE |
 | Ctrl-A | acknowledge DONE_UNSEEN on the selected target, clearing the marker |
 | Ctrl-Y | copy the target ref (`session:window.pane`) to the clipboard |
 | Ctrl-O | copy the pane's cwd to the clipboard |
-| Esc | close without action |
+| Esc | leave search mode; when already navigating, close without action |
 
 Kill and reset on a session or window row apply to every pane beneath it.
 
 ### 4.6 Search
 
-fzf fuzzy matches the visible row text: session name, window name, agent name, branch,
-path, prompt snippet, and state glyph. `!` finds everything blocked on you. The list is
-regenerated on open only; ctrl-x/ctrl-r/ctrl-a reload it in place.
+The list opens with search disabled, so every key is a command instead of a query
+character. `/` enables search, Esc disables it again.
+
+In search mode fzf fuzzy matches the visible row text: session name, window name, agent
+name, branch, path, prompt snippet, and state glyph. `!` finds everything blocked on you.
+The list is regenerated on open only; ctrl-x/ctrl-r/ctrl-a reload it in place.
 
 A right-side preview pane (55% width) shows the last 60 lines of the highlighted pane via
-`tmux capture-pane`, preserving colors. Header line: `! needs input  ● running  ✓ done  ○ idle`.
+`tmux capture-pane`. The preview strips background colours and non-SGR escapes, then cuts
+each line to the preview width, so a full-screen TUI cannot paint over the popup or wrap
+into a block of colours. Header line: `! needs input  ● running  ✓ done  ○ idle`.
 
 ## 5. Status model
 
