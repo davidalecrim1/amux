@@ -66,6 +66,8 @@ func (a *App) Run(args []string) int {
 		return a.foldCmd(rest)
 	case "unfold":
 		return a.unfoldCmd(rest)
+	case "toggle":
+		return a.toggleNodeCmd(rest)
 	case "doctor":
 		return a.doctorCmd(rest)
 	case "setup":

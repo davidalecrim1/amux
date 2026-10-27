@@ -22,22 +22,43 @@ func (a *App) unfoldCmd(args []string) int {
 }
 
 func (a *App) toggleCmd(args []string, fold bool) int {
-	if len(args) < 1 {
+	t, s, path, collapsed, ok := a.treeTarget(args)
+	if !ok {
 		return 0
+	}
+	return a.applyFold(s, path, collapsed, t, fold)
+}
+
+// toggleNodeCmd flips the node: folds an expanded session or window and
+// unfolds a collapsed one.
+func (a *App) toggleNodeCmd(args []string) int {
+	t, s, path, collapsed, ok := a.treeTarget(args)
+	if !ok {
+		return 0
+	}
+	return a.applyFold(s, path, collapsed, t, !isCollapsed(t, s.Panes, collapsed))
+}
+
+func (a *App) treeTarget(args []string) (target.Target, *snapshot, string, map[string]bool, bool) {
+	if len(args) < 1 {
+		return target.Target{}, nil, "", nil, false
 	}
 	t, err := target.Parse(args[0])
 	if err != nil {
-		return 0
+		return target.Target{}, nil, "", nil, false
 	}
 	path := os.Getenv(treeStateEnv)
 	if path == "" {
-		return 0
+		return target.Target{}, nil, "", nil, false
 	}
 	s, err := a.load(false)
 	if err != nil {
-		return 0
+		return target.Target{}, nil, "", nil, false
 	}
-	collapsed := loadCollapsed(path)
+	return t, s, path, loadCollapsed(path), true
+}
+
+func (a *App) applyFold(s *snapshot, path string, collapsed map[string]bool, t target.Target, fold bool) int {
 	focus, changed := foldState(t, s.Panes, collapsed, fold)
 	if !changed {
 		return 0
@@ -45,7 +66,6 @@ func (a *App) toggleCmd(args []string, fold bool) int {
 	if err := saveCollapsed(path, collapsed); err != nil {
 		return 0
 	}
-
 	rows := render.Rows(s.Panes, s.Records, render.Options{
 		Now:       a.Now(),
 		Branches:  branches(s.Panes),
@@ -62,6 +82,22 @@ func (a *App) toggleCmd(args []string, fold bool) int {
 	}
 	fmt.Fprintln(a.Stdout, action)
 	return 0
+}
+
+func isCollapsed(t target.Target, panes []tmux.Pane, collapsed map[string]bool) bool {
+	switch t.Kind {
+	case target.Session:
+		return collapsed["s:"+t.Session]
+	case target.Window:
+		return collapsed["w:"+t.Session+":"+t.Window]
+	default:
+		for _, p := range panes {
+			if p.PaneID == t.PaneID {
+				return collapsed["w:"+p.SessionName+":"+p.WindowIndex]
+			}
+		}
+	}
+	return false
 }
 
 // foldState applies h/l to the selected row and returns the row the cursor

@@ -51,8 +51,10 @@ The picker opens in navigation mode. Typing does nothing until you ask for searc
 | `j` / `k` | move down / up |
 | `g` / `G` | jump to first / last |
 | `h` / `l` | collapse / expand the selected session or window |
-| `/` | enter search mode |
-| Esc | leave search mode, or close when already navigating |
+| `;` | toggle the selected session or window |
+| `/` | reveal the input and enter search mode |
+| `q` | quit while navigating |
+| Esc | leave search mode, or quit while navigating |
 | Enter | jump to the selected session, window, or pane |
 | Ctrl-X | kill the selected target (asks y/N) |
 | Ctrl-R | reset tracked state to idle |
@@ -60,7 +62,8 @@ The picker opens in navigation mode. Typing does nothing until you ask for searc
 | Ctrl-Y | copy `session:window.pane` |
 | Ctrl-O | copy the pane's working directory |
 
-In search mode every key types normally. The preview drops the pane's background colours,
+Text is accepted only in search mode; while navigating, letters other than the bindings do
+nothing. In search mode every key types normally. The preview drops the pane's background colours,
 so a full-screen TUI cannot paint blocks over the popup, and each line is cut to the
 preview width instead of wrapping.
 
