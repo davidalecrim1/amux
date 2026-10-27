@@ -7,6 +7,8 @@ window, and pane; Enter jumps to the one you picked.
 No daemon. No sidebar. No status-line clutter. Hooks write a small state file, the popup
 reads it.
 
+![amux picker showing a tmux session tree with agent states](assets/amux.png)
+
 ```
 ▾ PROJ-123  api  1! 2● 1✓
   ├─ ▾ ● 1 claude
