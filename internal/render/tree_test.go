@@ -40,7 +40,7 @@ func TestTreeOrderingAndGlyphs(t *testing.T) {
 	if len(rows) != 7 {
 		t.Fatalf("got %d rows: %v", len(rows), rows)
 	}
-	if !strings.Contains(rows[0], "PROJ-123") || !strings.Contains(rows[0], "1! 1●") {
+	if !strings.Contains(rows[0], "PROJ-123") || !strings.Contains(rows[0], "1 NEEDS 1 RUN") {
 		t.Fatalf("first row = %q", rows[0])
 	}
 	if !strings.HasSuffix(rows[0], "\ts:PROJ-123") {
@@ -58,13 +58,15 @@ func TestTreeOrderingAndGlyphs(t *testing.T) {
 		t.Fatalf("pane order = %v", order)
 	}
 
-	// Session without agents sorts last and its pane carries no state glyph.
+	// Session without agents sorts last and its pane carries no state badge.
 	last := rows[len(rows)-1]
 	if !strings.Contains(last, "sleep") && !strings.Contains(last, "zsh") {
 		t.Fatalf("last row = %q", last)
 	}
-	if strings.Contains(last, "●") || strings.Contains(last, "!") || strings.Contains(last, "✓") {
-		t.Fatalf("non-agent pane should have no glyph: %q", last)
+	for _, label := range []string{"NEEDS", "RUN", "DONE", "IDLE"} {
+		if strings.Contains(last, label) {
+			t.Fatalf("non-agent pane should have no %s badge: %q", label, last)
+		}
 	}
 
 	var needsRow string

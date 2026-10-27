@@ -10,15 +10,15 @@ reads it.
 ![amux picker showing a tmux session tree with agent states](assets/amux.png)
 
 ```
-▾ PROJ-123  api  1! 2● 1✓
-  ├─ ▾ ● 1 claude
-  │   ├─ ! 2m   1.0   claude   feature/retry   api   why does this test fail?
-  │   └─ ● 12s  1.1   claude   feature/retry   api   add the retry budget
-  └─ ▾ ● 2 review
-      └─ ●  8s  2.0   opencode main            api
+▾ PROJ-123  api  1 NEEDS  2 RUN  1 DONE
+  ├─ RUN   1 claude
+  │   ├─ NEEDS 2m   1.0   claude   feature/retry   api   why does this test fail?
+  │   └─ RUN   12s  1.1   claude   feature/retry   api   add the retry budget
+  └─ RUN   2 review
+      └─ RUN    8s  2.0   opencode main            api
 ▾ PROJ-456  web
   └─    0 zsh
-      └─ ○ 1h  0.0   zsh      main            web
+      └─ IDLE 1h   0.0   zsh      main            web
 ```
 
 Status comes from agent lifecycle hooks, not from parsing pane output or polling
@@ -107,14 +107,16 @@ a collapsed session with a blocked agent still shows red.
 
 ## Status
 
-| State | Glyph | Meaning |
+| State | Badge | Meaning |
 | --- | --- | --- |
-| NEEDS_INPUT | `!` | blocked on a permission prompt, question, or error |
-| RUNNING | `●` | working |
-| DONE_UNSEEN | `✓` | finished since you last focused the pane |
-| IDLE | `○` | alive, waiting for a prompt |
+| NEEDS_INPUT | `NEEDS` | blocked on a permission prompt, question, or error |
+| RUNNING | `RUN` | working |
+| DONE_UNSEEN | `DONE` | finished since you last focused the pane |
+| IDLE | `IDLE` | alive, waiting for a prompt |
 
-Focusing a pane clears `✓` through tmux hooks. `Ctrl-A` clears it without visiting. A
+Badges are uppercase text on the state colour; the foreground is the terminal's default
+background, so they stay readable on light and dark themes. Focusing a pane clears `DONE`
+through tmux hooks. `Ctrl-A` clears it without visiting. A
 finish inside the pane you are currently looking at is recorded as idle immediately.
 
 ## Agents

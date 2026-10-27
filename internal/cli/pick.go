@@ -38,8 +38,6 @@ func (a *App) pick(args []string) int {
 		"--delimiter=\t",
 		"--with-nth=1",
 		"--nth=1",
-		"--header= ! input ● run ✓ done ○ idle  j/k h/l ;  / search  q quit ",
-		"--header-first",
 		"--pointer=▌",
 		"--marker=┃",
 		"--prompt=amux> ",

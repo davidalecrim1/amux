@@ -18,6 +18,7 @@ const (
 	reset     = "\x1b[0m"
 	bold      = "\x1b[1m"
 	faint     = "\x1b[2m"
+	reverse   = "\x1b[7m"
 	underline = "\x1b[4m"
 	red       = "\x1b[31m"
 	green     = "\x1b[32m"
@@ -231,10 +232,11 @@ func renderWindow(s sessionView, w windowView, last bool, opt Options) string {
 	b.WriteString(paint(opt, branch, faint))
 	b.WriteString(paint(opt, marker+" ", faint))
 	if w.hasAgent {
-		b.WriteString(paint(opt, glyph(state.State(rankState(w.rank)))+" ", stateColor(state.State(rankState(w.rank)))))
+		b.WriteString(badge(opt, state.State(rankState(w.rank))))
 	} else {
-		b.WriteString("  ")
+		b.WriteString("     ")
 	}
+	b.WriteString(" ")
 	b.WriteString(paint(opt, w.index, bold+defaultFG))
 	b.WriteString(" ")
 	b.WriteString(paint(opt, w.name, faint))
@@ -254,13 +256,12 @@ func renderPane(s sessionView, w windowView, p paneView, lastWin, lastPane bool,
 	b.WriteString(paint(opt, indent+branch, faint))
 
 	if p.rec != nil {
-		col := stateColor(p.rec.State)
-		b.WriteString(paint(opt, glyph(p.rec.State), bold+col))
+		b.WriteString(badge(opt, p.rec.State))
 		b.WriteString(" ")
 		b.WriteString(paint(opt, pad(FormatAge(opt.Now.Sub(p.rec.UpdatedAt)), 4), faint))
 		b.WriteString(" ")
 	} else {
-		b.WriteString("       ")
+		b.WriteString("           ")
 	}
 
 	b.WriteString(paint(opt, pad(w.index+"."+p.pane.PaneIndex, 5), faint))
@@ -312,22 +313,43 @@ func renderCounts(counts map[state.State]int, opt Options) string {
 		if n == 0 {
 			continue
 		}
-		parts = append(parts, paint(opt, fmt.Sprintf("%d%s", n, glyph(st)), stateColor(st)))
+		parts = append(parts, paint(opt, fmt.Sprintf("%d %s", n, stateLabel(st)), stateColor(st)))
 	}
 	return strings.Join(parts, " ")
 }
 
-func glyph(s state.State) string {
+// stateLabel is the uppercase word shown in the status badge.
+func stateLabel(s state.State) string {
 	switch s {
 	case state.NeedsInput:
-		return "!"
+		return "NEEDS"
 	case state.Running:
-		return "●"
+		return "RUN"
 	case state.DoneUnseen:
-		return "✓"
+		return "DONE"
 	default:
-		return "○"
+		return "IDLE"
 	}
+}
+
+// badgeStyle uses reverse video with the state colour so the badge text is the
+// terminal's default background. Both the red/blue/green and the text colour
+// come from the terminal theme, so light and dark themes stay readable.
+func badgeStyle(s state.State) string {
+	switch s {
+	case state.NeedsInput:
+		return reverse + red
+	case state.Running:
+		return reverse + blue
+	case state.DoneUnseen:
+		return reverse + green
+	default:
+		return faint
+	}
+}
+
+func badge(opt Options, s state.State) string {
+	return paint(opt, pad(stateLabel(s), 5), badgeStyle(s))
 }
 
 func stateColor(s state.State) string {

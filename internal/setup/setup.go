@@ -348,6 +348,33 @@ function mine(event) {
   return sessionID === undefined || id === undefined || id === sessionID
 }
 
+function handle(event) {
+  if (!mine(event)) return
+  switch (event.type) {
+    case "session.idle":
+      report({ state: "done_unseen" })
+      break
+    case "session.status": {
+      const status = event?.properties?.status?.type
+      if (status === "busy") report({ state: "running" })
+      else if (status === "idle") report({ state: "done_unseen" })
+      break
+    }
+    case "permission.asked":
+      report({ state: "needs_input", detail: "permission" })
+      break
+    case "permission.replied":
+      report({ state: "running" })
+      break
+    case "session.error":
+      report({ state: "needs_input", detail: "error" })
+      break
+    case "session.deleted":
+      report({ state: "gone" })
+      break
+  }
+}
+
 export default Plugin.define({
   id: "amux",
   async setup(ctx) {
@@ -355,28 +382,12 @@ export default Plugin.define({
     const controller = new AbortController()
 
     void (async () => {
-      try {
-        for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
-          if (!mine(event)) continue
-          switch (event.type) {
-            case "session.idle":
-              report({ state: "done_unseen" })
-              break
-            case "permission.asked":
-              report({ state: "needs_input", detail: "permission" })
-              break
-            case "permission.replied":
-              report({ state: "running" })
-              break
-            case "session.error":
-              report({ state: "needs_input", detail: "error" })
-              break
-            case "session.deleted":
-              report({ state: "gone" })
-              break
-          }
-        }
-      } catch {}
+      while (!controller.signal.aborted) {
+        try {
+          for await (const event of ctx.event.subscribe({ signal: controller.signal })) handle(event)
+        } catch {}
+        if (!controller.signal.aborted) await new Promise((r) => setTimeout(r, 1000))
+      }
     })()
 
     await ctx.session.hook("prompt", (event) => {

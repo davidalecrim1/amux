@@ -69,12 +69,17 @@ func (a *App) hookCmd(args []string) int {
 // service process can outlive the pane it was started from, so fall back to the
 // live pane running this agent in the same directory.
 func pickReportPane(panes []tmux.Pane, in reportInput) string {
-	live := make(map[string]bool, len(panes))
+	byID := make(map[string]tmux.Pane, len(panes))
 	for _, p := range panes {
-		live[p.PaneID] = true
+		byID[p.PaneID] = p
 	}
-	if in.PaneID != "" && live[in.PaneID] {
-		return in.PaneID
+	if p, ok := byID[in.PaneID]; ok && in.PaneID != "" {
+		// The OpenCode service inherits the pane it was launched from, which can
+		// be a stale pane or a different pane that is still alive. Only trust it
+		// when that pane is actually running opencode.
+		if in.Agent != "opencode" || strings.Contains(strings.ToLower(p.PaneCommand), "opencode") {
+			return in.PaneID
+		}
 	}
 	agent := strings.ToLower(in.Agent)
 	for _, dir := range []string{in.CWD, in.Project} {

@@ -13,8 +13,14 @@ func TestPickReportPane(t *testing.T) {
 		{PaneID: "%7", PanePath: "/work/other", PaneCommand: "opencode"},
 	}
 
-	if got := pickReportPane(panes, reportInput{PaneID: "%7"}); got != "%7" {
-		t.Fatalf("live pane should win, got %q", got)
+	if got := pickReportPane(panes, reportInput{PaneID: "%7", Agent: "opencode"}); got != "%7" {
+		t.Fatalf("live agent pane should win, got %q", got)
+	}
+
+	// A live pane that is not running the agent must not win just because the
+	// service inherited its id.
+	if got := pickReportPane(panes, reportInput{PaneID: "%4", Agent: "opencode", CWD: "/work/app"}); got != "%0" {
+		t.Fatalf("non-agent live pane should be skipped, got %q", got)
 	}
 
 	// OpenCode's service outlives the pane, leaving a stale TMUX_PANE. The

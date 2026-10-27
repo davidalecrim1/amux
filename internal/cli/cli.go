@@ -142,6 +142,13 @@ func (a *App) load(reconcile bool) (*snapshot, error) {
 				delete(records, id)
 				continue
 			}
+			// An opencode record on a pane that is back at a shell is stale. The
+			// TUI owns its pane, so the foreground command can never be a shell.
+			if rec.Agent == "opencode" && isLoginShell(p.PaneCommand) {
+				delete(records, id)
+				_ = a.Store.Delete(pid, id)
+				continue
+			}
 			if rec.State != state.Idle && isLoginShell(p.PaneCommand) && now.Sub(rec.LastEvent) > time.Minute {
 				rec.State = state.Idle
 				rec.UpdatedAt = rec.LastEvent

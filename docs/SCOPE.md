@@ -31,7 +31,7 @@ A single Go binary plus a tmux popup.
 Cut permanently unless re-scoped later:
 
 - No background daemon or collector loop.
-- No persistent sidebar pane, no status-right widget, no per-window glyph.
+- No persistent sidebar pane, no status-right widget, no per-window marker.
 - No park/wait modes, no unread-completion inbox or history.
 - No remote/SSH status, no notification sounds, no desktop toasts.
 - No session deploy or worktree orchestration.
@@ -60,12 +60,12 @@ selected node, the same way `choose-tree` does. Collapsed rows switch their mark
 `▾` to `▸` and keep the aggregate state of everything hidden inside them.
 
 ```
- ▾ PROJ-123  add retry to webhook consumer            !1 ●2 ✓1
-   ├─ ▾ 1 claude
-   │   ├─ ●  1.1 claude  feature/retry  fix webhook timeout…   12s
-   │   └─    1.2 zsh     feature/retry  ~/api
-   └─ ▾ 2 review
-       └─ !  2.1 claude  main           why does this fail?     2m
+ ▾ PROJ-123  add retry to webhook consumer     1 NEEDS  2 RUN
+   ├─ RUN   1 claude
+   │   ├─ NEEDS 1.1 claude  feature/retry  fix webhook timeout…   12s
+   │   └─ RUN   1.2 zsh     feature/retry  ~/api
+   └─ RUN   2 review
+       └─ NEEDS 2.1 claude  main           why does this fail?   2m
 ```
 
 Row anatomy:
@@ -74,30 +74,32 @@ Row anatomy:
 | --- | --- | --- |
 | session | `▾` (or `▸` if attached here) | session name (bold), summary line, per-state counts right-aligned |
 | window | `├─` / `└─` + `▾` | window index, window name |
-| pane | `├─` / `└─` | state glyph, `window.pane`, agent or foreground command, git branch, cwd basename (`~` for `$HOME`), last prompt snippet, age right-aligned |
+| pane | `├─` / `└─` | state badge, `window.pane`, agent or foreground command, git branch, cwd basename (`~` for `$HOME`), last prompt snippet, age |
 
 Session summary line is `#{session_path}` basename when it differs from the session name,
 otherwise omitted.
 
-### 4.3 Color and glyphs
+### 4.3 Color and badges
 
-Four states, one glyph each. Color does the scanning; the glyph is the fallback for
-monochrome. Nothing is pinned to a theme: every color is an ANSI palette slot, so the
-terminal (Ghostty, iTerm, anything) decides the shade, exactly as tmux does with its own
-theme colors.
+Four states, one uppercase badge each. Backgrounds do the scanning; the word is the
+fallback for monochrome. Nothing is pinned to a theme: every color is an ANSI palette slot,
+so the terminal (Ghostty, iTerm, anything) decides the shade, exactly as tmux does with its
+own theme colors.
 
-| State | Glyph | Color | Meaning |
+| State | Badge | Color | Meaning |
 | --- | --- | --- | --- |
-| NEEDS_INPUT | `!` | ANSI red, bold | agent is blocked on you (permission, question, error) |
-| RUNNING | `●` | ANSI blue | agent is working |
-| DONE_UNSEEN | `✓` | ANSI green | agent finished since you last looked at the pane |
-| IDLE | `○` | faint | agent is alive and waiting for a prompt |
-| none | space | faint | no agent in this pane |
+| NEEDS_INPUT | `NEEDS` | reverse ANSI red | agent is blocked on you (permission, question, error) |
+| RUNNING | `RUN` | reverse ANSI blue | agent is working |
+| DONE_UNSEEN | `DONE` | reverse ANSI green | agent finished since you last looked at the pane |
+| IDLE | `IDLE` | faint, no background | agent is alive and waiting for a prompt |
+| none | blank | none | no agent in this pane |
 
-Session rows take the color of their most urgent descendant. Window rows are faint.
-Agent names are ANSI cyan, branches ANSI magenta, prompt snippets the default foreground,
-age faint. fzf runs with `--color=16` and default backgrounds, so its chrome comes from
-the same palette.
+Reverse video makes the badge text the terminal's default background, so the label stays
+readable whether the theme is light or dark. Session rows take the color of their most
+urgent descendant and show counts as `1 NEEDS  2 RUN`. Window rows carry the aggregate
+badge. Agent names are ANSI cyan, branches ANSI magenta, prompt snippets the default
+foreground, age faint. fzf runs with `--color=16` and default backgrounds, so its chrome
+comes from the same palette. There is no header; the list is the whole surface.
 
 ### 4.4 Ordering
 
@@ -138,13 +140,14 @@ keypress can never become query text. `/` reveals the input and enables search; 
 it again. `q` quits in navigation mode and types normally in search mode.
 
 In search mode fzf fuzzy matches the visible row text: session name, window name, agent
-name, branch, path, prompt snippet, and state glyph. `!` finds everything blocked on you.
+name, branch, path, prompt snippet, and badge text. `NEEDS` finds everything blocked on
+you.
 The list is regenerated on open only; ctrl-x/ctrl-r/ctrl-a reload it in place.
 
 A right-side preview pane (half the popup, with a divider) shows the highlighted pane's
 visible screen via `tmux capture-pane`, never its scrollback. The preview strips background colours and non-SGR escapes, then cuts
 each line to the preview width, so a full-screen TUI cannot paint over the popup or wrap
-into a block of colours. Header line: `! needs input  ● running  ✓ done  ○ idle`.
+into a block of colours.
 
 ## 5. Status model
 
@@ -219,7 +222,7 @@ DONE_UNSEEN → IDLE happens when you focus the pane. tmux hooks (`after-select-
 `after-select-window`, `client-session-changed`) call `amux focus <pane-id or
 session:window>`, which clears the marker and stamps `last_focus_at`. `Ctrl-A`
 acknowledges without visiting. A `Stop` inside the pane you are currently looking at is
-recorded as IDLE immediately, so watching an agent finish never leaves a stale `✓`.
+recorded as IDLE immediately, so watching an agent finish never leaves a stale `DONE`.
 
 ### 5.5 Age
 
