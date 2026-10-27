@@ -208,13 +208,13 @@ func renderSession(s sessionView, opt Options) string {
 	var b strings.Builder
 	b.WriteString(paint(opt, marker+" ", faint))
 	b.WriteString(paint(opt, s.name, nameStyle))
+	if s.hasAgent && (agentCount(s) > 1 || opt.Collapsed[sessionKey(s.name)]) {
+		b.WriteString("  ")
+		b.WriteString(badge(opt, state.State(rankState(s.rank))))
+	}
 	if base := pathBase(s.path); base != "" && base != s.name {
 		b.WriteString("  ")
 		b.WriteString(paint(opt, base, faint))
-	}
-	if counts := renderCounts(s.counts, opt); counts != "" {
-		b.WriteString("  ")
-		b.WriteString(counts)
 	}
 	return b.String()
 }
@@ -231,15 +231,13 @@ func renderWindow(s sessionView, w windowView, last bool, opt Options) string {
 	var b strings.Builder
 	b.WriteString(paint(opt, branch, faint))
 	b.WriteString(paint(opt, marker+" ", faint))
-	if w.hasAgent {
-		b.WriteString(badge(opt, state.State(rankState(w.rank))))
-	} else {
-		b.WriteString("     ")
-	}
-	b.WriteString(" ")
 	b.WriteString(paint(opt, w.index, bold+defaultFG))
 	b.WriteString(" ")
 	b.WriteString(paint(opt, w.name, faint))
+	if w.hasAgent && opt.Collapsed[windowKey(s.name, w.index)] {
+		b.WriteString("  ")
+		b.WriteString(badge(opt, state.State(rankState(w.rank))))
+	}
 	return b.String()
 }
 
@@ -261,7 +259,7 @@ func renderPane(s sessionView, w windowView, p paneView, lastWin, lastPane bool,
 		b.WriteString(paint(opt, pad(FormatAge(opt.Now.Sub(p.rec.UpdatedAt)), 4), faint))
 		b.WriteString(" ")
 	} else {
-		b.WriteString("           ")
+		b.WriteString("             ")
 	}
 
 	b.WriteString(paint(opt, pad(w.index+"."+p.pane.PaneIndex, 5), faint))
@@ -306,16 +304,12 @@ func branchName(p paneView) string {
 	return p.branch
 }
 
-func renderCounts(counts map[state.State]int, opt Options) string {
-	var parts []string
-	for _, st := range []state.State{state.NeedsInput, state.DoneUnseen, state.Running, state.Idle} {
-		n := counts[st]
-		if n == 0 {
-			continue
-		}
-		parts = append(parts, paint(opt, fmt.Sprintf("%d %s", n, stateLabel(st)), stateColor(st)))
+func agentCount(s sessionView) int {
+	n := 0
+	for _, c := range s.counts {
+		n += c
 	}
-	return strings.Join(parts, " ")
+	return n
 }
 
 // stateLabel is the uppercase word shown in the status badge.
@@ -324,7 +318,7 @@ func stateLabel(s state.State) string {
 	case state.NeedsInput:
 		return "NEEDS"
 	case state.Running:
-		return "RUN"
+		return "RUNNING"
 	case state.DoneUnseen:
 		return "DONE"
 	default:
@@ -332,15 +326,15 @@ func stateLabel(s state.State) string {
 	}
 }
 
-// badgeStyle uses reverse video with the state colour so the badge text is the
-// terminal's default background. Both the red/blue/green and the text colour
-// come from the terminal theme, so light and dark themes stay readable.
+// badgeStyle colours the badge word. NEEDS and DONE use reverse video so the
+// text is the terminal's default background and both shades come from the
+// theme. RUNNING is the one exception: white on the theme's green background.
 func badgeStyle(s state.State) string {
 	switch s {
 	case state.NeedsInput:
 		return reverse + bold + red
 	case state.Running:
-		return reverse + bold + green
+		return bold + "\x1b[97m" + "\x1b[42m"
 	case state.DoneUnseen:
 		return reverse + bold + blue
 	default:
@@ -348,11 +342,13 @@ func badgeStyle(s state.State) string {
 	}
 }
 
+const badgeWidth = len("RUNNING")
+
 // badge colours only the word; the padding is plain so the space after the
 // badge is never painted with a background.
 func badge(opt Options, s state.State) string {
 	label := stateLabel(s)
-	return paint(opt, label, badgeStyle(s)) + strings.Repeat(" ", 5-len(label))
+	return paint(opt, label, badgeStyle(s)) + strings.Repeat(" ", badgeWidth-len(label))
 }
 
 func stateColor(s state.State) string {

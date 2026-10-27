@@ -125,9 +125,11 @@ These are easy to regress. Each one has a test or a documented reason.
 
 - ANSI 16-color palette only: red 31, green 32, blue 34, magenta 35, cyan 36, faint 2,
   reverse 7, default fg 39. Never hardcode truecolor; the terminal theme decides the shades.
-- State markers are uppercase badges (`NEEDS`, `RUN`, `DONE`, `IDLE`) using reverse video
-  over the state colour, not glyphs. Session counts use `N LABEL`. There is no picker
-  header; keep the surface minimal.
+- State markers are uppercase badges (`NEEDS`, `RUNNING`, `DONE`, `IDLE`), not glyphs.
+  NEEDS/DONE use reverse video over the state colour; RUNNING is white on green. Only the
+  agent pane carries a badge. A session aggregates only when it has more than one agent or
+  is collapsed; a window aggregates only when collapsed. There is no picker header; keep
+  the surface minimal.
 - The preview strips background SGR and every non-SGR escape, then cuts each line to
   `FZF_PREVIEW_COLUMNS - 1`. A TUI with a 200-column frame must not wrap into blocks.
 - Ordering is urgency first (needs-input → done-unseen → running → idle), then last used

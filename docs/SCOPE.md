@@ -60,21 +60,21 @@ selected node, the same way `choose-tree` does. Collapsed rows switch their mark
 `▾` to `▸` and keep the aggregate state of everything hidden inside them.
 
 ```
- ▾ PROJ-123  add retry to webhook consumer     1 NEEDS  2 RUN
-   ├─ RUN   1 claude
-   │   ├─ NEEDS 1.1 claude  feature/retry  fix webhook timeout…   12s
-   │   └─ RUN   1.2 zsh     feature/retry  ~/api
-   └─ RUN   2 review
-       └─ NEEDS 2.1 claude  main           why does this fail?   2m
+ ▾ PROJ-123  NEEDS  add retry to webhook consumer
+   ├─ ▾ 1 claude
+   │   ├─ NEEDS   1.1 claude  feature/retry  fix webhook timeout…   12s
+   │   └─ RUNNING 1.2 zsh     feature/retry  ~/api
+   └─ ▾ 2 review
+       └─ NEEDS   2.1 claude  main           why does this fail?   2m
 ```
 
 Row anatomy:
 
 | Row | Prefix | Columns |
 | --- | --- | --- |
-| session | `▾` (or `▸` if attached here) | session name (bold), summary line, per-state counts right-aligned |
-| window | `├─` / `└─` + `▾` | window index, window name |
-| pane | `├─` / `└─` | state badge, `window.pane`, agent or foreground command, git branch, cwd basename (`~` for `$HOME`), last prompt snippet, age |
+| session | `▾` (underlined name if attached here) | session name (bold), aggregate badge when it has more than one agent or is collapsed, path basename |
+| window | `├─` / `└─` + `▾` | window index, window name, aggregate badge only when collapsed |
+| pane | `├─` / `└─` | state badge for agent panes only, `window.pane`, agent or foreground command, git branch, cwd basename (`~` for `$HOME`), last prompt snippet, age |
 
 Session summary line is `#{session_path}` basename when it differs from the session name,
 otherwise omitted.
@@ -89,7 +89,7 @@ own theme colors.
 | State | Badge | Color | Meaning |
 | --- | --- | --- | --- |
 | NEEDS_INPUT | `NEEDS` | reverse, bold ANSI red | agent is blocked on you (permission, question, error) |
-| RUNNING | `RUN` | reverse, bold ANSI green | agent is working |
+| RUNNING | `RUNNING` | bold white on ANSI green | agent is working |
 | DONE_UNSEEN | `DONE` | reverse, bold ANSI blue | agent finished since you last looked at the pane |
 | IDLE | `IDLE` | faint, no background | agent is alive and waiting for a prompt |
 | none | blank | none | no agent in this pane |
