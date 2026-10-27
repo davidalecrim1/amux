@@ -135,8 +135,11 @@ func TestSnippetContent(t *testing.T) {
 	if !strings.Contains(s, "'/bin/amux pick'") {
 		t.Fatalf("bind is malformed:\n%s", s)
 	}
-	if !strings.Contains(s, "-s 'bg=default'") {
-		t.Fatalf("popup should inherit the terminal background:\n%s", s)
+	if !strings.Contains(s, "set-option -gu popup-style") {
+		t.Fatalf("popup should clear the theme popup style:\n%s", s)
+	}
+	if strings.Contains(s, "-s bg=") {
+		t.Fatalf("popup should not set its own background:\n%s", s)
 	}
 	if strings.Contains(s, "''") {
 		t.Fatalf("double quoting in snippet:\n%s", s)
