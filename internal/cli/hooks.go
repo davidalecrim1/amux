@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/davidalecrim1/amux/internal/agent"
 	"github.com/davidalecrim1/amux/internal/state"
@@ -63,8 +65,53 @@ func (a *App) hookCmd(args []string) int {
 	return 0
 }
 
+// pickReportPane prefers the reported pane when it is still alive. OpenCode's
+// service process can outlive the pane it was started from, so fall back to the
+// live pane running this agent in the same directory.
+func pickReportPane(panes []tmux.Pane, in reportInput) string {
+	live := make(map[string]bool, len(panes))
+	for _, p := range panes {
+		live[p.PaneID] = true
+	}
+	if in.PaneID != "" && live[in.PaneID] {
+		return in.PaneID
+	}
+	agent := strings.ToLower(in.Agent)
+	for _, dir := range []string{in.CWD, in.Project} {
+		if dir == "" {
+			continue
+		}
+		want := filepath.Clean(dir)
+		var matches []tmux.Pane
+		for _, p := range panes {
+			if filepath.Clean(p.PanePath) != want {
+				continue
+			}
+			if agent != "" && !strings.Contains(strings.ToLower(p.PaneCommand), agent) {
+				continue
+			}
+			matches = append(matches, p)
+		}
+		if len(matches) == 1 {
+			return matches[0].PaneID
+		}
+		var active []tmux.Pane
+		for _, p := range matches {
+			if p.PaneActive {
+				active = append(active, p)
+			}
+		}
+		if len(active) == 1 {
+			return active[0].PaneID
+		}
+	}
+	return ""
+}
+
 type reportInput struct {
 	PaneID    string `json:"pane_id"`
+	CWD       string `json:"cwd"`
+	Project   string `json:"project"`
 	Agent     string `json:"agent"`
 	State     string `json:"state"`
 	Detail    string `json:"detail"`
@@ -80,11 +127,16 @@ func (a *App) reportCmd(args []string) int {
 	if in.PaneID == "" {
 		in.PaneID = os.Getenv("TMUX_PANE")
 	}
-	if in.PaneID == "" {
-		return 0
-	}
 	pid, err := tmux.ServerPID()
 	if err != nil {
+		return 0
+	}
+	panes, err := tmux.ListPanes()
+	if err != nil {
+		return 0
+	}
+	in.PaneID = pickReportPane(panes, in)
+	if in.PaneID == "" {
 		return 0
 	}
 	if in.State == "gone" || in.State == "end" {

@@ -328,15 +328,17 @@ import { spawn } from "node:child_process"
 
 const BIN = __AMUX_BIN__
 const pane = process.env.TMUX_PANE
+const launchDir = process.cwd()
+let projectDir = undefined
 let sessionID = undefined
 
 function report(payload) {
-  if (!pane) return
+  if (!pane && !projectDir) return
   try {
     const proc = spawn(BIN, ["report"], { detached: true, stdio: ["pipe", "ignore", "ignore"] })
     proc.on("error", () => {})
     proc.stdin.on("error", () => {})
-    proc.stdin.end(JSON.stringify({ pane_id: pane, agent: "opencode", ...payload }))
+    proc.stdin.end(JSON.stringify({ pane_id: pane, cwd: launchDir, project: projectDir, agent: "opencode", ...payload }))
     proc.unref()
   } catch {}
 }
@@ -349,6 +351,7 @@ function mine(event) {
 export default Plugin.define({
   id: "amux",
   async setup(ctx) {
+    projectDir = ctx.location?.directory || process.cwd()
     const controller = new AbortController()
 
     void (async () => {

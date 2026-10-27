@@ -134,6 +134,11 @@ stream. Prompts and tool calls mark running; `permission.asked` marks needs-inpu
 `session.idle` marks done; `session.error` marks needs-input; `session.deleted` removes
 the record.
 
+OpenCode v2 runs a long-lived `opencode serve --service` process, so the plugin's
+`TMUX_PANE` can point at a pane that has already been closed. The adapter therefore
+resolves the live pane by directory: the service's launch directory first, then the
+plugin's project directory, preferring the pane that is actually running `opencode`.
+
 ### Anything else
 
 ```sh
