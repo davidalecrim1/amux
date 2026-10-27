@@ -338,18 +338,21 @@ func stateLabel(s state.State) string {
 func badgeStyle(s state.State) string {
 	switch s {
 	case state.NeedsInput:
-		return reverse + red
+		return reverse + bold + red
 	case state.Running:
-		return reverse + blue
+		return reverse + bold + green
 	case state.DoneUnseen:
-		return reverse + green
+		return reverse + bold + blue
 	default:
 		return faint
 	}
 }
 
+// badge colours only the word; the padding is plain so the space after the
+// badge is never painted with a background.
 func badge(opt Options, s state.State) string {
-	return paint(opt, pad(stateLabel(s), 5), badgeStyle(s))
+	label := stateLabel(s)
+	return paint(opt, label, badgeStyle(s)) + strings.Repeat(" ", 5-len(label))
 }
 
 func stateColor(s state.State) string {
@@ -357,9 +360,9 @@ func stateColor(s state.State) string {
 	case state.NeedsInput:
 		return red
 	case state.Running:
-		return blue
-	case state.DoneUnseen:
 		return green
+	case state.DoneUnseen:
+		return blue
 	default:
 		return faint
 	}

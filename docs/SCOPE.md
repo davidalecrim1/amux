@@ -88,14 +88,15 @@ own theme colors.
 
 | State | Badge | Color | Meaning |
 | --- | --- | --- | --- |
-| NEEDS_INPUT | `NEEDS` | reverse ANSI red | agent is blocked on you (permission, question, error) |
-| RUNNING | `RUN` | reverse ANSI blue | agent is working |
-| DONE_UNSEEN | `DONE` | reverse ANSI green | agent finished since you last looked at the pane |
+| NEEDS_INPUT | `NEEDS` | reverse, bold ANSI red | agent is blocked on you (permission, question, error) |
+| RUNNING | `RUN` | reverse, bold ANSI green | agent is working |
+| DONE_UNSEEN | `DONE` | reverse, bold ANSI blue | agent finished since you last looked at the pane |
 | IDLE | `IDLE` | faint, no background | agent is alive and waiting for a prompt |
 | none | blank | none | no agent in this pane |
 
 Reverse video makes the badge text the terminal's default background, so the label stays
-readable whether the theme is light or dark. Session rows take the color of their most
+readable whether the theme is light or dark. Only the word is coloured; the padding after
+it is plain, so no background bleeds into the column gap. Session rows take the color of their most
 urgent descendant and show counts as `1 NEEDS  2 RUN`. Window rows carry the aggregate
 badge. Agent names are ANSI cyan, branches ANSI magenta, prompt snippets the default
 foreground, age faint. fzf runs with `--color=16` and default backgrounds, so its chrome
