@@ -62,6 +62,10 @@ func (a *App) Run(args []string) int {
 		return a.hookCmd(rest)
 	case "report":
 		return a.reportCmd(rest)
+	case "fold":
+		return a.foldCmd(rest)
+	case "unfold":
+		return a.unfoldCmd(rest)
 	case "doctor":
 		return a.doctorCmd(rest)
 	case "setup":
@@ -207,9 +211,10 @@ func gitBranch(dir string) string {
 
 func (a *App) renderRows(s *snapshot, ansi bool) []string {
 	return render.Rows(s.Panes, s.Records, render.Options{
-		Now:      s.Now,
-		Branches: branches(s.Panes),
-		ANSI:     ansi,
+		Now:       s.Now,
+		Branches:  branches(s.Panes),
+		ANSI:      ansi,
+		Collapsed: loadCollapsed(os.Getenv(treeStateEnv)),
 	})
 }
 

@@ -24,6 +24,9 @@ func (a *App) pick(args []string) int {
 		return a.fail("%v", err)
 	}
 	bin := shellQuote(exe)
+	statePath := fmt.Sprintf("%s/amux-tree-%d.json", os.TempDir(), os.Getpid())
+	_ = os.Remove(statePath)
+	defer os.Remove(statePath)
 
 	fzfArgs := []string{
 		"--ansi",
@@ -31,11 +34,11 @@ func (a *App) pick(args []string) int {
 		"--height=100%",
 		"--no-sort",
 		"--disabled",
-		"--color=bg+:-1",
+		"--color=bg:-1,bg+:-1,preview-bg:-1",
 		"--delimiter=\t",
 		"--with-nth=1",
 		"--nth=1",
-		"--header= ! needs input   ● running   ✓ done   ○ idle      j/k move   / search   ^X kill   ^R reset   ^A ack ",
+		"--header= ! input  ● running  ✓ done  ○ idle   j/k  h/l fold  / search ",
 		"--header-first",
 		"--pointer=▌",
 		"--marker=┃",
@@ -48,6 +51,10 @@ func (a *App) pick(args []string) int {
 		"--bind", `G:transform:[ "$FZF_INPUT_STATE" = disabled ] && echo last || echo "put(G)"`,
 		"--bind", `/:transform:[ "$FZF_INPUT_STATE" = disabled ] && echo "enable-search+change-prompt(search> )" || echo "put(/)"`,
 		"--bind", `esc:transform:[ "$FZF_INPUT_STATE" = enabled ] && echo "disable-search+clear-query+change-prompt(amux> )" || echo abort`,
+		"--bind", fmt.Sprintf(`h:transform:if [ "$FZF_INPUT_STATE" = disabled ]; then %s fold {2}; else echo "put(h)"; fi`, bin),
+		"--bind", fmt.Sprintf(`H:transform:if [ "$FZF_INPUT_STATE" = disabled ]; then %s fold {2}; else echo "put(H)"; fi`, bin),
+		"--bind", fmt.Sprintf(`l:transform:if [ "$FZF_INPUT_STATE" = disabled ]; then %s unfold {2}; else echo "put(l)"; fi`, bin),
+		"--bind", fmt.Sprintf(`L:transform:if [ "$FZF_INPUT_STATE" = disabled ]; then %s unfold {2}; else echo "put(L)"; fi`, bin),
 		"--bind=ctrl-x:execute(" + bin + " kill {2})+reload(" + bin + " list --ansi)",
 		"--bind=ctrl-r:execute-silent(" + bin + " reset {2})+reload(" + bin + " list --ansi)",
 		"--bind=ctrl-a:execute-silent(" + bin + " ack {2})+reload(" + bin + " list --ansi)",
@@ -56,6 +63,7 @@ func (a *App) pick(args []string) int {
 	}
 
 	cmd := exec.Command("fzf", fzfArgs...)
+	cmd.Env = append(os.Environ(), treeStateEnv+"="+statePath)
 	cmd.Stdin = strings.NewReader(strings.Join(rows, "\n") + "\n")
 	cmd.Stderr = a.Stderr
 	var out strings.Builder

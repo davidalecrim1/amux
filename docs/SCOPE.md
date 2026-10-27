@@ -43,15 +43,17 @@ Cut permanently unless re-scoped later:
 ### 4.1 Entry point
 
 ```
-bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded '~/.local/bin/amux pick'
+bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=default' '~/.local/bin/amux pick'
 ```
 
 `prefix + w` is left untouched as the plain `choose-tree` fallback.
 
 ### 4.2 Layout
 
-Every row is selectable. Box-drawing tree, sessions collapsed into headers with windows
-and panes nested beneath. Everything is expanded; there is no collapse key.
+Every row is selectable. Box-drawing tree, sessions as headers with windows and panes
+nested beneath. Sessions and windows start expanded; `h` collapses and `l` expands the
+selected node, the same way `choose-tree` does. Collapsed rows switch their marker from
+`▾` to `▸` and keep the aggregate state of everything hidden inside them.
 
 ```
  ▾ PROJ-123  add retry to webhook consumer            !1 ●2 ✓1
@@ -108,6 +110,7 @@ every redraw.
 | --- | --- |
 | `j` / `k` | move the cursor down / up while navigating |
 | `g` / `G` | jump to the first / last row |
+| `h` / `l` | collapse / expand the selected session or window |
 | `/` | enter search mode |
 | Enter | jump to the selected session, window, or pane and close the popup |
 | Ctrl-X | kill the selected pane, window, or session, after a y/N confirmation |
@@ -281,7 +284,7 @@ before editing:
 1. Writes `~/.config/amux/tmux.conf`:
 
 ```tmux
-bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded '~/.local/bin/amux pick'
+bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=default' '~/.local/bin/amux pick'
 set-hook -g after-select-pane   'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
 set-hook -g after-select-window 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
 set-hook -g client-session-changed 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'

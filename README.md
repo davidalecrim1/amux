@@ -49,6 +49,7 @@ The picker opens in navigation mode. Typing does nothing until you ask for searc
 | --- | --- |
 | `j` / `k` | move down / up |
 | `g` / `G` | jump to first / last |
+| `h` / `l` | collapse / expand the selected session or window |
 | `/` | enter search mode |
 | Esc | leave search mode, or close when already navigating |
 | Enter | jump to the selected session, window, or pane |

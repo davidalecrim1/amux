@@ -15,21 +15,23 @@ import (
 )
 
 const (
-	reset   = "\x1b[0m"
-	bold    = "\x1b[1m"
-	red     = "\x1b[38;2;247;118;142m"
-	blue    = "\x1b[38;2;122;162;247m"
-	green   = "\x1b[38;2;158;206;106m"
-	dim     = "\x1b[38;2;86;95;137m"
-	cyan    = "\x1b[38;2;125;207;255m"
-	magenta = "\x1b[38;2;187;154;247m"
-	white   = "\x1b[38;2;192;202;245m"
+	reset     = "\x1b[0m"
+	bold      = "\x1b[1m"
+	red       = "\x1b[38;2;247;118;142m"
+	blue      = "\x1b[38;2;122;162;247m"
+	green     = "\x1b[38;2;158;206;106m"
+	dim       = "\x1b[38;2;86;95;137m"
+	cyan      = "\x1b[38;2;125;207;255m"
+	magenta   = "\x1b[38;2;187;154;247m"
+	white     = "\x1b[38;2;192;202;245m"
+	underline = "\x1b[4m"
 )
 
 type Options struct {
-	Now      time.Time
-	Branches map[string]string
-	ANSI     bool
+	Now       time.Time
+	Branches  map[string]string
+	ANSI      bool
+	Collapsed map[string]bool
 }
 
 type paneView struct {
@@ -73,11 +75,17 @@ func Rows(panes []tmux.Pane, records map[string]state.Record, opt Options) []str
 		out = append(out, renderSession(s, opt)+"\t"+target.Ref(target.Target{
 			Kind: target.Session, Session: s.name,
 		}))
+		if opt.Collapsed[sessionKey(s.name)] {
+			continue
+		}
 		for wi, w := range s.windows {
 			lastWin := wi == len(s.windows)-1
 			out = append(out, renderWindow(s, w, lastWin, opt)+"\t"+target.Ref(target.Target{
 				Kind: target.Window, Session: s.name, Window: w.index,
 			}))
+			if opt.Collapsed[windowKey(s.name, w.index)] {
+				continue
+			}
 			for pi, p := range w.panes {
 				lastPane := pi == len(w.panes)-1
 				out = append(out, renderPane(s, w, p, lastWin, lastPane, opt)+"\t"+target.Ref(target.Target{
@@ -87,6 +95,14 @@ func Rows(panes []tmux.Pane, records map[string]state.Record, opt Options) []str
 		}
 	}
 	return out
+}
+
+func sessionKey(name string) string {
+	return "s:" + name
+}
+
+func windowKey(session, index string) string {
+	return "w:" + session + ":" + index
 }
 
 func group(panes []tmux.Pane, records map[string]state.Record, opt Options) []sessionView {
@@ -176,17 +192,21 @@ func group(panes []tmux.Pane, records map[string]state.Record, opt Options) []se
 }
 
 func renderSession(s sessionView, opt Options) string {
-	arrow := "▾"
-	if s.attached {
-		arrow = "▸"
+	marker := "▾"
+	if opt.Collapsed[sessionKey(s.name)] {
+		marker = "▸"
 	}
 	nameColor := white
 	if s.hasAgent && s.rank != state.Idle.Rank() {
 		nameColor = stateColor(state.State(rankState(s.rank)))
 	}
+	nameStyle := bold + nameColor
+	if s.attached {
+		nameStyle += underline
+	}
 	var b strings.Builder
-	b.WriteString(paint(opt, arrow+" ", dim))
-	b.WriteString(paint(opt, s.name, bold+nameColor))
+	b.WriteString(paint(opt, marker+" ", dim))
+	b.WriteString(paint(opt, s.name, nameStyle))
 	if base := pathBase(s.path); base != "" && base != s.name {
 		b.WriteString("  ")
 		b.WriteString(paint(opt, base, dim))
@@ -203,8 +223,13 @@ func renderWindow(s sessionView, w windowView, last bool, opt Options) string {
 	if last {
 		branch = "  └─ "
 	}
+	marker := "▾"
+	if opt.Collapsed[windowKey(s.name, w.index)] {
+		marker = "▸"
+	}
 	var b strings.Builder
 	b.WriteString(paint(opt, branch, dim))
+	b.WriteString(paint(opt, marker+" ", dim))
 	if w.hasAgent {
 		b.WriteString(paint(opt, glyph(state.State(rankState(w.rank)))+" ", stateColor(state.State(rankState(w.rank)))))
 	} else {

@@ -93,6 +93,55 @@ func TestAgeFormats(t *testing.T) {
 	}
 }
 
+func TestCollapsedSessionHidesChildren(t *testing.T) {
+	now := time.Now()
+	panes := []tmux.Pane{
+		pane("S1", "0", "0", "%1", "node", true, true),
+		pane("S1", "1", "0", "%2", "zsh", false, false),
+		pane("S2", "0", "0", "%3", "zsh", true, true),
+	}
+	rows := Rows(panes, nil, Options{Now: now, Collapsed: map[string]bool{"s:S1": true}})
+
+	for _, r := range rows {
+		if strings.HasSuffix(r, "\tw:S1:0") || strings.HasSuffix(r, "\tw:S1:1") {
+			t.Fatalf("collapsed session leaked a child: %q", r)
+		}
+	}
+	if !strings.Contains(rows[0], "▸") {
+		t.Fatalf("collapsed session marker missing: %q", rows[0])
+	}
+	if !strings.Contains(rows[1], "S2") {
+		t.Fatalf("expanded session missing: %q", rows[1])
+	}
+}
+
+func TestCollapsedWindowHidesPanes(t *testing.T) {
+	now := time.Now()
+	panes := []tmux.Pane{
+		pane("S1", "0", "0", "%1", "node", true, true),
+		pane("S1", "1", "0", "%2", "zsh", false, false),
+	}
+	rows := Rows(panes, nil, Options{Now: now, Collapsed: map[string]bool{"w:S1:1": true}})
+
+	if len(rows) != 4 {
+		t.Fatalf("rows = %d: %v", len(rows), rows)
+	}
+	for _, r := range rows {
+		if strings.HasSuffix(r, "\tp:%2") {
+			t.Fatalf("collapsed window leaked a pane: %q", r)
+		}
+	}
+	var windowRow string
+	for _, r := range rows {
+		if strings.HasSuffix(r, "\tw:S1:1") {
+			windowRow = r
+		}
+	}
+	if windowRow == "" || !strings.Contains(windowRow, "▸") {
+		t.Fatalf("collapsed window marker missing: %q", windowRow)
+	}
+}
+
 func TestANSIOnlyWhenAsked(t *testing.T) {
 	now := time.Now()
 	panes := []tmux.Pane{pane("S", "0", "0", "%1", "node", true, true)}
