@@ -34,7 +34,7 @@ func (a *App) pick(args []string) int {
 		"--height=100%",
 		"--no-sort",
 		"--disabled",
-		"--color=bg:-1,bg+:-1,preview-bg:-1",
+		"--color=16,bg:-1,bg+:-1,alt-bg:-1,list-bg:-1,input-bg:-1,header-bg:-1,footer-bg:-1,preview-bg:-1",
 		"--delimiter=\t",
 		"--with-nth=1",
 		"--nth=1",

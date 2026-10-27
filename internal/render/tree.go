@@ -17,14 +17,14 @@ import (
 const (
 	reset     = "\x1b[0m"
 	bold      = "\x1b[1m"
-	red       = "\x1b[38;2;247;118;142m"
-	blue      = "\x1b[38;2;122;162;247m"
-	green     = "\x1b[38;2;158;206;106m"
-	dim       = "\x1b[38;2;86;95;137m"
-	cyan      = "\x1b[38;2;125;207;255m"
-	magenta   = "\x1b[38;2;187;154;247m"
-	white     = "\x1b[38;2;192;202;245m"
+	faint     = "\x1b[2m"
 	underline = "\x1b[4m"
+	red       = "\x1b[31m"
+	green     = "\x1b[32m"
+	blue      = "\x1b[34m"
+	magenta   = "\x1b[35m"
+	cyan      = "\x1b[36m"
+	defaultFG = "\x1b[39m"
 )
 
 type Options struct {
@@ -196,7 +196,7 @@ func renderSession(s sessionView, opt Options) string {
 	if opt.Collapsed[sessionKey(s.name)] {
 		marker = "▸"
 	}
-	nameColor := white
+	nameColor := defaultFG
 	if s.hasAgent && s.rank != state.Idle.Rank() {
 		nameColor = stateColor(state.State(rankState(s.rank)))
 	}
@@ -205,11 +205,11 @@ func renderSession(s sessionView, opt Options) string {
 		nameStyle += underline
 	}
 	var b strings.Builder
-	b.WriteString(paint(opt, marker+" ", dim))
+	b.WriteString(paint(opt, marker+" ", faint))
 	b.WriteString(paint(opt, s.name, nameStyle))
 	if base := pathBase(s.path); base != "" && base != s.name {
 		b.WriteString("  ")
-		b.WriteString(paint(opt, base, dim))
+		b.WriteString(paint(opt, base, faint))
 	}
 	if counts := renderCounts(s.counts, opt); counts != "" {
 		b.WriteString("  ")
@@ -228,16 +228,16 @@ func renderWindow(s sessionView, w windowView, last bool, opt Options) string {
 		marker = "▸"
 	}
 	var b strings.Builder
-	b.WriteString(paint(opt, branch, dim))
-	b.WriteString(paint(opt, marker+" ", dim))
+	b.WriteString(paint(opt, branch, faint))
+	b.WriteString(paint(opt, marker+" ", faint))
 	if w.hasAgent {
 		b.WriteString(paint(opt, glyph(state.State(rankState(w.rank)))+" ", stateColor(state.State(rankState(w.rank)))))
 	} else {
 		b.WriteString("  ")
 	}
-	b.WriteString(paint(opt, w.index, bold+white))
+	b.WriteString(paint(opt, w.index, bold+defaultFG))
 	b.WriteString(" ")
-	b.WriteString(paint(opt, w.name, dim))
+	b.WriteString(paint(opt, w.name, faint))
 	return b.String()
 }
 
@@ -251,29 +251,29 @@ func renderPane(s sessionView, w windowView, p paneView, lastWin, lastPane bool,
 		branch = "└─ "
 	}
 	var b strings.Builder
-	b.WriteString(paint(opt, indent+branch, dim))
+	b.WriteString(paint(opt, indent+branch, faint))
 
 	if p.rec != nil {
 		col := stateColor(p.rec.State)
 		b.WriteString(paint(opt, glyph(p.rec.State), bold+col))
 		b.WriteString(" ")
-		b.WriteString(paint(opt, pad(FormatAge(opt.Now.Sub(p.rec.UpdatedAt)), 4), dim))
+		b.WriteString(paint(opt, pad(FormatAge(opt.Now.Sub(p.rec.UpdatedAt)), 4), faint))
 		b.WriteString(" ")
 	} else {
 		b.WriteString("       ")
 	}
 
-	b.WriteString(paint(opt, pad(w.index+"."+p.pane.PaneIndex, 5), dim))
+	b.WriteString(paint(opt, pad(w.index+"."+p.pane.PaneIndex, 5), faint))
 	b.WriteString(" ")
 	b.WriteString(paint(opt, pad(truncate(agentName(p), 8), 8), cyan))
 	b.WriteString(" ")
 	b.WriteString(paint(opt, pad(truncate(branchName(p), 16), 16), magenta))
 	b.WriteString(" ")
-	b.WriteString(paint(opt, pad(truncate(pathBase(p.pane.PanePath), 14), 14), dim))
+	b.WriteString(paint(opt, pad(truncate(pathBase(p.pane.PanePath), 14), 14), faint))
 
 	if extra := paneExtra(p); extra != "" {
 		b.WriteString("  ")
-		b.WriteString(paint(opt, truncate(extra, 56), white))
+		b.WriteString(paint(opt, truncate(extra, 56), defaultFG))
 	}
 	return strings.TrimRight(b.String(), " ")
 }
@@ -339,7 +339,7 @@ func stateColor(s state.State) string {
 	case state.DoneUnseen:
 		return green
 	default:
-		return dim
+		return faint
 	}
 }
 

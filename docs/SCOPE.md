@@ -82,19 +82,22 @@ otherwise omitted.
 ### 4.3 Color and glyphs
 
 Four states, one glyph each. Color does the scanning; the glyph is the fallback for
-monochrome.
+monochrome. Nothing is pinned to a theme: every color is an ANSI palette slot, so the
+terminal (Ghostty, iTerm, anything) decides the shade, exactly as tmux does with its own
+theme colors.
 
 | State | Glyph | Color | Meaning |
 | --- | --- | --- | --- |
-| NEEDS_INPUT | `!` | `#f7768e` red, bold | agent is blocked on you (permission, question, error) |
-| RUNNING | `●` | `#7aa2f7` blue | agent is working |
-| DONE_UNSEEN | `✓` | `#9ece6a` green | agent finished since you last looked at the pane |
-| IDLE | `○` | `#565f89` dim | agent is alive and waiting for a prompt |
-| none | space | dim | no agent in this pane |
+| NEEDS_INPUT | `!` | ANSI red, bold | agent is blocked on you (permission, question, error) |
+| RUNNING | `●` | ANSI blue | agent is working |
+| DONE_UNSEEN | `✓` | ANSI green | agent finished since you last looked at the pane |
+| IDLE | `○` | faint | agent is alive and waiting for a prompt |
+| none | space | faint | no agent in this pane |
 
-Session rows take the color of their most urgent descendant. Window rows are dim white.
-Agent names are dim cyan, branches magenta, prompt snippets default, age dim. fzf renders
-with `--ansi`.
+Session rows take the color of their most urgent descendant. Window rows are faint.
+Agent names are ANSI cyan, branches ANSI magenta, prompt snippets the default foreground,
+age faint. fzf runs with `--color=16` and default backgrounds, so its chrome comes from
+the same palette.
 
 ### 4.4 Ordering
 
