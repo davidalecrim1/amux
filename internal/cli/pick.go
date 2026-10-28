@@ -53,7 +53,7 @@ func (a *App) pick(args []string) int {
 		"--bind", `g:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then echo first; else echo "put(g)"; fi`,
 		"--bind", `G:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then echo last; else echo "put(G)"; fi`,
 		"--bind", `/:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then echo "show-input+enable-search+change-prompt(search> )"; else echo "put(/)"; fi`,
-		"--bind", `esc:transform:if [ "$FZF_INPUT_STATE" = enabled ]; then echo "disable-search+clear-query+hide-input"; else echo abort; fi`,
+		"--bind", `esc:transform:if [ "$FZF_INPUT_STATE" = enabled ]; then echo "hide-input"; elif [ -n "$FZF_QUERY" ]; then echo "clear-query"; else echo abort; fi`,
 		"--bind", `q:transform:if [ "$FZF_INPUT_STATE" = enabled ]; then echo "put(q)"; else echo abort; fi`,
 		"--bind", fmt.Sprintf(`h:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then %s fold {2}; else echo "put(h)"; fi`, bin),
 		"--bind", fmt.Sprintf(`H:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then %s fold {2}; else echo "put(H)"; fi`, bin),

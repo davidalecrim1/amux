@@ -89,6 +89,8 @@ These are easy to regress. Each one has a test or a documented reason.
   `--no-input` to actually block typing, then `show-input+enable-search` for `/`.
 - `FZF_INPUT_STATE` is `hidden` at startup, `enabled` in search mode. Conditional
   bindings must test `!= enabled` for navigation, not `= disabled`.
+- `hide-input` keeps the query and the filtered matches. Esc while typing hides the input
+  to lock the filter, so navigation keys work on the results; Esc again clears the query.
 - `put(...)` inserts text into the query. `print(...)` prints and exits; never use it to
   re-insert a key.
 - `reload(...)` is asynchronous. When the cursor must land on a row after a reload, emit

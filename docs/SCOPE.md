@@ -135,8 +135,11 @@ Kill and reset on a session or window row apply to every pane beneath it.
 ### 4.6 Search
 
 The list opens in navigation mode with fzf's input field hidden (`--no-input`), so a
-keypress can never become query text. `/` reveals the input and enables search; Esc hides
-it again. `q` quits in navigation mode and types normally in search mode.
+keypress can never become query text. `/` reveals the input and enables search. Esc while
+typing hides the input but keeps the query and the filtered result set, so `j`/`k` navigate
+the matches; `/` brings the input back with the query intact. Esc with a filter applied
+clears it; Esc with no filter quits. `q` quits in navigation mode and types normally in
+search mode.
 
 In search mode fzf fuzzy matches the visible row text: session name, window name, agent
 name, branch, path, prompt snippet, and badge text. `NEEDS` finds everything blocked on

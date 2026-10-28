@@ -95,7 +95,7 @@ search mode.
 | `;` | toggle the selected session or window |
 | `/` | reveal the input and enter search mode |
 | `q` | quit while navigating |
-| `Esc` | leave search mode, or quit while navigating |
+| `Esc` | hide the input and keep the filter; with a filter applied, clear it; with no filter, quit |
 | `Enter` | jump to the selected session, window, or pane |
 | `Ctrl-X` | kill the selected target (asks y/N) |
 | `Ctrl-R` | reset tracked state to idle |
