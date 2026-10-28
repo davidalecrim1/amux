@@ -56,7 +56,8 @@ to filter, jump.
 - tmux 3.4 or newer (`display-popup`, `after-select-pane`). On tmux 3.8+ the popup
   inherits the terminal background; older versions fall back to the configured popup
   style.
-- fzf 0.60 or newer (tested with 0.74).
+- fzf 0.71 or newer (tested with 0.74); the open popup refreshes itself and keeps the
+  selection across reloads.
 - Go 1.24 or newer to build.
 - OpenCode v2 for the OpenCode adapter (v1 plugins are a different API).
 

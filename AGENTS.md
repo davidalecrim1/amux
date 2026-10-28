@@ -94,6 +94,9 @@ These are easy to regress. Each one has a test or a documented reason.
 - `reload(...)` is asynchronous. When the cursor must land on a row after a reload, emit
   `reload-sync(...)+pos(N)` from the transform.
 - The list is pre-sorted; `--no-sort` preserves that order.
+- The popup refreshes live via `--listen=<unix socket>` plus a one-second ticker that
+  POSTs `reload(amux list --ansi)`. It is a goroutine inside `amux pick`, not a daemon;
+  fzf 0.71+ keeps the query and current item across the reload.
 
 ### tmux
 

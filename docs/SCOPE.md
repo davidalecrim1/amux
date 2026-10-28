@@ -143,7 +143,10 @@ it again. `q` quits in navigation mode and types normally in search mode.
 In search mode fzf fuzzy matches the visible row text: session name, window name, agent
 name, branch, path, prompt snippet, and badge text. `NEEDS` finds everything blocked on
 you.
-The list is regenerated on open only; ctrl-x/ctrl-r/ctrl-a reload it in place.
+The list is regenerated on open and then every second while the popup is open, through fzf's
+`--listen` socket. Changes are visible without closing the picker, and fzf keeps the
+query and current item across the reload. The refresh goroutine lives only as long as
+`amux pick`; nothing survives the command.
 
 A right-side preview pane (half the popup, with a divider) shows the highlighted pane's
 visible screen via `tmux capture-pane`, never its scrollback. The preview strips background colours and non-SGR escapes, then cuts

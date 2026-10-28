@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/davidalecrim1/amux/internal/target"
@@ -27,6 +28,9 @@ func (a *App) pick(args []string) int {
 	statePath := fmt.Sprintf("%s/amux-tree-%d.json", os.TempDir(), os.Getpid())
 	_ = os.Remove(statePath)
 	defer os.Remove(statePath)
+	sockPath := filepath.Join(os.TempDir(), fmt.Sprintf("amux-fzf-%d.sock", os.Getpid()))
+	_ = os.Remove(sockPath)
+	defer os.Remove(sockPath)
 
 	fzfArgs := []string{
 		"--ansi",
@@ -43,6 +47,7 @@ func (a *App) pick(args []string) int {
 		"--prompt=amux> ",
 		"--preview=" + bin + " preview {2}",
 		"--preview-window=right:50%:border-left",
+		"--listen=" + sockPath,
 		"--bind", `j:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then echo down; else echo "put(j)"; fi`,
 		"--bind", `k:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then echo up; else echo "put(k)"; fi`,
 		"--bind", `g:transform:if [ "$FZF_INPUT_STATE" != enabled ]; then echo first; else echo "put(g)"; fi`,
@@ -68,7 +73,11 @@ func (a *App) pick(args []string) int {
 	cmd.Stderr = a.Stderr
 	var out strings.Builder
 	cmd.Stdout = &out
+
+	stop := make(chan struct{})
+	go refreshLoop(sockPath, fmt.Sprintf("reload(%s list --ansi)", bin), stop)
 	err = cmd.Run()
+	close(stop)
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok {
 			switch ee.ExitCode() {
