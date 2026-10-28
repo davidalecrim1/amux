@@ -10,15 +10,15 @@ reads it.
 ![amux picker showing a tmux session tree with agent states](assets/amux.png)
 
 ```
-▾ PROJ-123  NEEDS  api
+▾ PROJ-123  🚨 NEEDS  api
   ├─ ▾ 1 claude
-  │   ├─ NEEDS   2m   1.0   claude   feature/retry   api   why does this test fail?
-  │   └─ RUNNING 12s  1.1   claude   feature/retry   api   add the retry budget
+  │   ├─ 🚨 NEEDS   2m   1.0   claude   feature/retry   api   why does this test fail?
+  │   └─ 🏃 RUNNING 12s  1.1   claude   feature/retry   api   add the retry budget
   └─ ▾ 2 review
-      └─ RUNNING  8s  2.0   opencode main            api
+      └─ 🏃 RUNNING  8s  2.0   opencode main            api
 ▾ PROJ-456  web
   └─    0 zsh
-      └─ IDLE 1h  0.0   zsh      main            web
+      └─ 💤 IDLE 1h  0.0   zsh      main            web
 ```
 
 Status comes from agent lifecycle hooks, not from parsing pane output or polling
@@ -108,20 +108,19 @@ a collapsed session with a blocked agent still shows red.
 
 ## Status
 
-| State | Badge | Meaning |
+| State | Marker | Meaning |
 | --- | --- | --- |
-| NEEDS_INPUT | `NEEDS` | blocked on a permission prompt, question, or error |
-| RUNNING | `RUNNING` | working |
-| DONE_UNSEEN | `DONE` | finished since you last focused the pane |
-| IDLE | `IDLE` | alive, waiting for a prompt |
+| NEEDS_INPUT | 🚨 NEEDS | blocked on a permission prompt, question, or error |
+| RUNNING | 🏃 RUNNING | working |
+| DONE_UNSEEN | ✅ DONE | finished since you last focused the pane |
+| IDLE | 💤 IDLE | alive, waiting for a prompt |
 
-Status lives on the agent's pane, not on the window above it: a window with one nvim pane
-and one opencode pane badges only the opencode row. A session shows its worst state when it
-contains more than one agent, or when it is collapsed; a window shows its state only when
-collapsed. NEEDS and DONE use reverse video over the state colour, so the text is the
-terminal's default background. RUNNING is white on green. Focusing a pane clears `DONE`
-through tmux hooks. `Ctrl-A` clears it without visiting. A
-finish inside the pane you are currently looking at is recorded as idle immediately.
+Markers are an emoji plus an uppercase word, with no background color. Status lives on the
+agent's pane, not on the window above it: a window with one nvim pane and one opencode pane
+badges only the opencode row. A session shows its worst state when it contains more than one
+agent, or when it is collapsed; a window shows its state only when collapsed. Focusing a pane
+clears `DONE` through tmux hooks. `Ctrl-A` clears it without visiting. A finish inside the
+pane you are currently looking at is recorded as idle immediately.
 
 ## Agents
 

@@ -18,7 +18,6 @@ const (
 	reset     = "\x1b[0m"
 	bold      = "\x1b[1m"
 	faint     = "\x1b[2m"
-	reverse   = "\x1b[7m"
 	underline = "\x1b[4m"
 	red       = "\x1b[31m"
 	green     = "\x1b[32m"
@@ -210,7 +209,7 @@ func renderSession(s sessionView, opt Options) string {
 	b.WriteString(paint(opt, s.name, nameStyle))
 	if s.hasAgent && (agentCount(s) > 1 || opt.Collapsed[sessionKey(s.name)]) {
 		b.WriteString("  ")
-		b.WriteString(badge(opt, state.State(rankState(s.rank))))
+		b.WriteString(statusText(state.State(rankState(s.rank))))
 	}
 	if base := pathBase(s.path); base != "" && base != s.name {
 		b.WriteString("  ")
@@ -236,7 +235,7 @@ func renderWindow(s sessionView, w windowView, last bool, opt Options) string {
 	b.WriteString(paint(opt, w.name, faint))
 	if w.hasAgent && opt.Collapsed[windowKey(s.name, w.index)] {
 		b.WriteString("  ")
-		b.WriteString(badge(opt, state.State(rankState(w.rank))))
+		b.WriteString(statusText(state.State(rankState(w.rank))))
 	}
 	return b.String()
 }
@@ -254,12 +253,12 @@ func renderPane(s sessionView, w windowView, p paneView, lastWin, lastPane bool,
 	b.WriteString(paint(opt, indent+branch, faint))
 
 	if p.rec != nil {
-		b.WriteString(badge(opt, p.rec.State))
+		b.WriteString(statusText(p.rec.State))
 		b.WriteString(" ")
 		b.WriteString(paint(opt, pad(FormatAge(opt.Now.Sub(p.rec.UpdatedAt)), 4), faint))
 		b.WriteString(" ")
 	} else {
-		b.WriteString("             ")
+		b.WriteString("                ")
 	}
 
 	b.WriteString(paint(opt, pad(w.index+"."+p.pane.PaneIndex, 5), faint))
@@ -326,29 +325,26 @@ func stateLabel(s state.State) string {
 	}
 }
 
-// badgeStyle colours the badge word. NEEDS and DONE use reverse video so the
-// text is the terminal's default background and both shades come from the
-// theme. RUNNING is the one exception: white on the theme's green background.
-func badgeStyle(s state.State) string {
-	switch s {
-	case state.NeedsInput:
-		return reverse + bold + red
-	case state.Running:
-		return bold + "\x1b[97m" + "\x1b[42m"
-	case state.DoneUnseen:
-		return reverse + bold + blue
-	default:
-		return faint
-	}
-}
-
 const badgeWidth = len("RUNNING")
 
-// badge colours only the word; the padding is plain so the space after the
-// badge is never painted with a background.
-func badge(opt Options, s state.State) string {
+// statusText is the emoji plus the uppercase word, padded so every state takes
+// the same number of columns. Nothing is drawn with a background colour.
+func statusText(s state.State) string {
 	label := stateLabel(s)
-	return paint(opt, label, badgeStyle(s)) + strings.Repeat(" ", badgeWidth-len(label))
+	return stateEmoji(s) + " " + label + strings.Repeat(" ", badgeWidth-len(label))
+}
+
+func stateEmoji(s state.State) string {
+	switch s {
+	case state.NeedsInput:
+		return "🚨"
+	case state.Running:
+		return "🏃"
+	case state.DoneUnseen:
+		return "✅"
+	default:
+		return "💤"
+	}
 }
 
 func stateColor(s state.State) string {

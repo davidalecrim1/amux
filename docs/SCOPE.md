@@ -60,12 +60,12 @@ selected node, the same way `choose-tree` does. Collapsed rows switch their mark
 `▾` to `▸` and keep the aggregate state of everything hidden inside them.
 
 ```
- ▾ PROJ-123  NEEDS  add retry to webhook consumer
+ ▾ PROJ-123  🚨 NEEDS  add retry to webhook consumer
    ├─ ▾ 1 claude
-   │   ├─ NEEDS   1.1 claude  feature/retry  fix webhook timeout…   12s
-   │   └─ RUNNING 1.2 zsh     feature/retry  ~/api
+   │   ├─ 🚨 NEEDS   1.1 claude  feature/retry  fix webhook timeout…   12s
+   │   └─ 🏃 RUNNING 1.2 zsh     feature/retry  ~/api
    └─ ▾ 2 review
-       └─ NEEDS   2.1 claude  main           why does this fail?   2m
+       └─ 🚨 NEEDS   2.1 claude  main           why does this fail?   2m
 ```
 
 Row anatomy:
@@ -79,28 +79,26 @@ Row anatomy:
 Session summary line is `#{session_path}` basename when it differs from the session name,
 otherwise omitted.
 
-### 4.3 Color and badges
+### 4.3 Emojis and labels
 
-Four states, one uppercase badge each. Backgrounds do the scanning; the word is the
-fallback for monochrome. Nothing is pinned to a theme: every color is an ANSI palette slot,
-so the terminal (Ghostty, iTerm, anything) decides the shade, exactly as tmux does with its
-own theme colors.
+Four states, one emoji plus an uppercase word. There is no background color; the emoji does
+the scanning and the label stays in the terminal's default foreground.
 
-| State | Badge | Color | Meaning |
-| --- | --- | --- | --- |
-| NEEDS_INPUT | `NEEDS` | reverse, bold ANSI red | agent is blocked on you (permission, question, error) |
-| RUNNING | `RUNNING` | bold white on ANSI green | agent is working |
-| DONE_UNSEEN | `DONE` | reverse, bold ANSI blue | agent finished since you last looked at the pane |
-| IDLE | `IDLE` | faint, no background | agent is alive and waiting for a prompt |
-| none | blank | none | no agent in this pane |
+| State | Marker | Meaning |
+| --- | --- | --- |
+| NEEDS_INPUT | 🚨 NEEDS | agent is blocked on you (permission, question, error) |
+| RUNNING | 🏃 RUNNING | agent is working |
+| DONE_UNSEEN | ✅ DONE | agent finished since you last looked at the pane |
+| IDLE | 💤 IDLE | agent is alive and waiting for a prompt |
+| none | blank | no agent in this pane |
 
-Reverse video makes the badge text the terminal's default background, so the label stays
-readable whether the theme is light or dark. Only the word is coloured; the padding after
-it is plain, so no background bleeds into the column gap. Session rows take the color of their most
-urgent descendant and show counts as `1 NEEDS  2 RUN`. Window rows carry the aggregate
-badge. Agent names are ANSI cyan, branches ANSI magenta, prompt snippets the default
-foreground, age faint. fzf runs with `--color=16` and default backgrounds, so its chrome
-comes from the same palette. There is no header; the list is the whole surface.
+The marker is padded to the width of `🏃 RUNNING` so the pane columns stay aligned. Status
+belongs to the agent pane: a window with one nvim pane and one opencode pane marks only the
+opencode row. A session shows its worst state when it contains more than one agent, or when
+it is collapsed; a window shows its state only when collapsed. Agent names are ANSI cyan,
+branches ANSI magenta, prompt snippets the default foreground, age faint. fzf runs with
+`--color=16` and default backgrounds, so its chrome comes from the same palette. There is no
+header; the list is the whole surface.
 
 ### 4.4 Ordering
 
