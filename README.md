@@ -136,10 +136,11 @@ never block the agent: they always exit zero and absorb their own errors.
 
 ### OpenCode
 
-The generated plugin targets the OpenCode v2 plugin API and subscribes to the server event
-stream. Prompts and tool calls mark running; `permission.asked` marks needs-input;
-`session.idle` marks done; `session.error` marks needs-input; `session.deleted` removes
-the record.
+The generated plugin subscribes to the OpenCode v2 event stream. Prompts, tool calls, and
+`session.execution.started` mark running; `session.execution.succeeded` or
+`interrupted` mark done; `session.execution.failed` marks needs-input with the error type;
+`permission.asked` marks needs-input; `session.deleted` removes the record. The v2 stream
+uses `session.execution.*`; `session.idle` and `session.status` remain as fallbacks.
 
 OpenCode v2 runs a long-lived `opencode serve --service` process, so the plugin's
 `TMUX_PANE` can point at a pane that has already been closed. The adapter therefore

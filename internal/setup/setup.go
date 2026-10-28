@@ -344,13 +344,23 @@ function report(payload) {
 }
 
 function mine(event) {
-  const id = event?.properties?.sessionID
-  return sessionID === undefined || id === undefined || id === sessionID
+  const id = event?.data?.sessionID || event?.properties?.sessionID
+  return sessionID !== undefined && id !== undefined && id === sessionID
 }
 
 function handle(event) {
   if (!mine(event)) return
   switch (event.type) {
+    case "session.execution.started":
+      report({ state: "running" })
+      break
+    case "session.execution.succeeded":
+    case "session.execution.interrupted":
+      report({ state: "done_unseen" })
+      break
+    case "session.execution.failed":
+      report({ state: "needs_input", detail: event?.data?.error?.type || "error" })
+      break
     case "session.idle":
       report({ state: "done_unseen" })
       break

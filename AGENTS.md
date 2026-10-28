@@ -120,6 +120,10 @@ These are easy to regress. Each one has a test or a documented reason.
   `pane_id`, then a unique pane whose path equals `cwd`, then `project`, filtered by the
   pane running the agent. Ambiguity is resolved by the active pane, otherwise dropped.
 - The OpenCode v2 API is different from v1. v1 plugins do not run at all.
+- v2 emits `session.execution.started|succeeded|failed|interrupted`, not
+  `session.idle`; the session ID is at `event.data.sessionID`, not
+  `event.properties.sessionID`. The plugin filters events on the session ID captured by the
+  prompt hook, otherwise every plugin instance reacts to every session on the server.
 
 ### Rendering
 

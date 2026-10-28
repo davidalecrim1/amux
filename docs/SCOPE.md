@@ -192,11 +192,14 @@ subscribing to the OpenCode v2 public event stream and piping normalized JSON in
 
 | Event | Result |
 | --- | --- |
-| `prompt` session hook | RUNNING |
+| `prompt` session hook | RUNNING, records the session ID |
 | `tool.execute.before` hook | RUNNING, heartbeat |
+| `session.execution.started` | RUNNING |
+| `session.execution.succeeded`, `interrupted` | DONE_UNSEEN |
+| `session.execution.failed` | NEEDS_INPUT, detail = error type |
 | `permission.asked` | NEEDS_INPUT |
 | `permission.replied` | RUNNING |
-| `session.idle` | DONE_UNSEEN |
+| `session.idle`, `session.status` | fallback for RUNNING/DONE |
 | `session.error` | NEEDS_INPUT, detail = error |
 | `session.deleted` | delete the record |
 
