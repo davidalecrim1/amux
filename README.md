@@ -66,21 +66,47 @@ to filter, jump.
 ```sh
 git clone https://github.com/davidalecrim1/amux
 cd amux
-make install       # builds to ~/.local/bin/amux
+make install       # builds to ~/.local/bin/amux; PREFIX=... overrides
 amux setup         # wires tmux, Claude Code, and OpenCode
 ```
 
 `amux setup` is idempotent and supports `--dry-run`. It:
 
-1. writes `~/.config/amux/tmux.conf` with `bind W` and the three focus hooks;
+1. writes `~/.config/amux/tmux.conf` with the `prefix+W` binding and the three focus hooks;
 2. appends one `source-file` line to `~/.config/tmux/tmux.conf` (or `~/.tmux.conf`);
 3. merges the Claude Code hooks into `~/.claude/settings.json`, keeping existing handlers
    and writing a timestamped backup;
 4. writes the OpenCode v2 plugin to `~/.config/opencode/plugins/amux.js`.
 
-Then reload tmux and restart Claude Code and OpenCode.
+Then reload tmux and restart Claude Code and OpenCode:
 
-If you prefer to wire it by hand, the generated `~/.config/amux/tmux.conf` is ten lines.
+```sh
+tmux source-file ~/.config/tmux/tmux.conf   # or ~/.tmux.conf
+```
+
+### The keybinding
+
+`bind W` binds `W` after your tmux prefix. If your prefix is the default `C-b`, press
+`C-b`, then `W`. If you use `C-a`, press `C-a`, then `W`. The generated file is:
+
+```tmux
+bind W display-popup -E -w 90% -h 85% -T ' Agent Multiplexer ' -b rounded -s 'bg=terminal' -S 'fg=brightblack' '~/.local/bin/amux pick'
+set-hook -g after-select-pane 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
+set-hook -g after-select-window 'run-shell -b "~/.local/bin/amux focus #{session_name}:#{window_index}"'
+set-hook -g client-session-changed 'run-shell -b "~/.local/bin/amux focus #{session_name}:#{window_index}"'
+```
+
+To use a different key, change `W` in `~/.config/amux/tmux.conf` and reload:
+
+```sh
+tmux source-file ~/.config/amux/tmux.conf
+```
+
+On tmux older than 3.8, setup omits `-s 'bg=terminal'` because the keyword does not exist
+there; the popup then uses the configured `popup-style`.
+
+If you do not want `amux setup` to edit your configs, run `amux setup --dry-run` to see
+every change, then wire the lines above by hand.
 
 ## Keys
 
