@@ -138,6 +138,12 @@ func TestSnippetContent(t *testing.T) {
 	if !strings.Contains(s, "-s 'bg=terminal'") {
 		t.Fatalf("popup should use the terminal background:\n%s", s)
 	}
+	if !strings.Contains(s, "-T ' Agent Multiplexer '") {
+		t.Fatalf("popup title missing:\n%s", s)
+	}
+	if !strings.Contains(s, "-S 'fg=brightblack'") {
+		t.Fatalf("popup border style missing:\n%s", s)
+	}
 	old := snippetContent("/bin/amux", false)
 	if strings.Contains(old, "bg=terminal") {
 		t.Fatalf("old tmux should not get the terminal colour flag:\n%s", old)

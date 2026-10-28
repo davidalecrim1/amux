@@ -43,7 +43,7 @@ Cut permanently unless re-scoped later:
 ### 4.1 Entry point
 
 ```
-bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=terminal' '~/.local/bin/amux pick'
+bind W display-popup -E -w 90% -h 85% -T ' Agent Multiplexer ' -b rounded -s 'bg=terminal' -S 'fg=brightblack' '~/.local/bin/amux pick'
 ```
 
 `-s 'bg=terminal'` overrides the theme's solid `popup-style` for this popup only and makes
@@ -298,7 +298,7 @@ before editing:
 1. Writes `~/.config/amux/tmux.conf`:
 
 ```tmux
-bind W display-popup -E -w 90% -h 85% -T ' amux ' -b rounded -s 'bg=terminal' '~/.local/bin/amux pick'
+bind W display-popup -E -w 90% -h 85% -T ' Agent Multiplexer ' -b rounded -s 'bg=terminal' -S 'fg=brightblack' '~/.local/bin/amux pick'
 set-hook -g after-select-pane   'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
 set-hook -g after-select-window 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
 set-hook -g client-session-changed 'run-shell -b "~/.local/bin/amux focus #{pane_id}"'
